@@ -1,6 +1,6 @@
 # gradle-commons-test
 
-This library provides APIs for the use of Wooga's Gradle plugins.
+This library provides APIs for the testing of Wooga's Gradle plugins.
 
 ## Development
 
