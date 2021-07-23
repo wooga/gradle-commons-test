@@ -15,15 +15,13 @@
  *
  */
 
-package com.wooga.gradle
+package com.wooga.gradle.test
 
-
+import com.wooga.gradle.PlatformUtilsImpl
 import nebula.test.functional.ExecutionResult
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.contrib.java.lang.system.ProvideSystemProperty
-import wooga.gradle.unity.utils.PlatformUtilsImpl
-import wooga.gradle.utils.PropertyUtilsImpl
 
 class IntegrationSpec extends nebula.test.IntegrationSpec
         implements PropertyUtilsImpl, PlatformUtilsImpl {
