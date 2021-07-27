@@ -85,7 +85,7 @@ publishing {
             from(components["java"])
 
             pom {
-                name = 'Wooga Gradle Test Framework'
+                name = 'Wooga Gradle Commons Test'
                 description = 'A library for providing APIs for the testing of Gradle plugins.'
                 url = 'https://github.com/wooga/gradle-commons-test'
 
