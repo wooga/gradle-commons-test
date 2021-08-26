@@ -56,6 +56,13 @@ class IntegrationSpec extends nebula.test.IntegrationSpec
         wrapValueBasedOnType(rawValue, type.simpleName, fallback)
     }
 
+
+    // TODO:
+    static String toGradleDslString(Object value, String type) {
+
+    }
+
+    // TODO: TO be replaced by the above method
     String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
         def value
         def rawValueEscaped = String.isInstance(rawValue) ? "'${rawValue}'" : rawValue
@@ -66,10 +73,12 @@ class IntegrationSpec extends nebula.test.IntegrationSpec
             case "Closure":
                 if (subType) {
                     value = "{${wrapValueBasedOnType(rawValue, subType, fallback)}}"
+                    // TODO: Broken for generic use case
                 } else {
                     value = "{$rawValueEscaped}"
                 }
                 break
+            // TODO:
             case "Callable":
                 value = "new java.util.concurrent.Callable<${rawValue.class.typeName}>() {@Override ${rawValue.class.typeName} call() throws Exception { $rawValueEscaped }}"
                 break
@@ -95,21 +104,26 @@ class IntegrationSpec extends nebula.test.IntegrationSpec
                         break
                 }
                 break
+            // TODO: ...
             case "String":
                 value = "${escapedPath(rawValueEscaped.toString())}"
                 break
+        // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
             case "String[]":
                 value = "'${rawValue.collect { it }.join(",")}'.split(',')"
                 break
             case "File":
                 value = "new File('${escapedPath(rawValue.toString())}')"
                 break
+            // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
             case "String...":
                 value = "${rawValue.collect { '"' + it + '"' }.join(", ")}"
                 break
+            // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
             case "List":
                 value = "[${rawValue.collect { '"' + it + '"' }.join(", ")}]"
                 break
+            // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
             case "Map":
                 value = "[" + rawValue.collect { k, v -> "${wrapValueBasedOnType(k, k.getClass(), fallback)} : ${wrapValueBasedOnType(v, v.getClass(), fallback)}" }.join(", ") + "]"
                 value = value == "[]" ? "[:]" : value
