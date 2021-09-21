@@ -38,8 +38,7 @@ dependencies {
     implementation gradleApi()
 
     // TODO: Use version range for some of these?
-    implementation 'com.wooga.gradle:gradle-commons:(0, 1]'
-    //implementation 'com.wooga.gradle:gradle-commons:0.1.0-rc.7'
+    implementation 'com.wooga.gradle:gradle-commons:0.1.0'
     implementation 'com.google.guava:guava:29.0-jre'
     implementation 'com.github.stefanbirkner:system-rules:1.18.0'
     implementation 'junit:junit:4.13'
