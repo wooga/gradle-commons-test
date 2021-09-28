@@ -1,10 +1,6 @@
 package com.wooga.gradle.test.executable
 
-
-import java.nio.file.Path
-import java.nio.file.Paths
-
-import static com.wooga.gradle.test.GradleSpecUtils.isWindows
+import static com.wooga.gradle.test.SpecUtils.isWindows
 
 class FakeExecutables {
 
@@ -18,7 +14,7 @@ class FakeExecutables {
         String osAwareFakePath = isWindows() && !fakeFilePath.endsWith(".bat")?
                 "${fakeFilePath}.bat" :
                 fakeFilePath
-        File fakeExec = setupExecutableFile(Paths.get(osAwareFakePath), overwrites)
+        File fakeExec = setupExecutableFile(new File(osAwareFakePath), overwrites)
         fakeExec.deleteOnExit()
         if (isWindows()) {
             //https://stackoverflow.com/questions/935609/batch-parameters-everything-after-1
@@ -56,7 +52,7 @@ class FakeExecutables {
         String osAwareFakePath = isWindows() && !fakeFilePath.endsWith(".bat")?
                 "${fakeFilePath}.bat" :
                 fakeFilePath
-        File fakeExec = setupExecutableFile(Paths.get(osAwareFakePath), overwrites)
+        File fakeExec = setupExecutableFile(new File(osAwareFakePath), overwrites)
         fakeExec.deleteOnExit()
 
         String[] argsTokens = ["[[arguments]]", "[[end arguments]]"]
@@ -64,13 +60,12 @@ class FakeExecutables {
         return new ArgsReflectorExecutable(fakeExec, argsTokens, envTokens, exitCode)
     }
 
-    private static File setupExecutableFile(Path fakeFilePath, boolean overwrites) {
-        File fakeExec = fakeFilePath.toFile()
+    private static File setupExecutableFile(File fakeExec, boolean overwrites) {
         if (fakeExec.exists()) {
             if (overwrites) {
                 fakeExec.delete()
             } else {
-                throw new IllegalArgumentException("File ${fakeFilePath} already exists")
+                throw new IllegalArgumentException("File ${fakeExec} already exists")
             }
         }
         fakeExec.createNewFile()

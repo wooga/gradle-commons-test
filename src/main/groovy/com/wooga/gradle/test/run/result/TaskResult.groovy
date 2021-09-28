@@ -11,15 +11,19 @@ class TaskResult {
         this.runResult = runResult
     }
 
-    boolean wasExecutedBefore(String otherTaskName) {
-        return runResult.compareExecutionOrder(taskName, otherTaskName) {
-            taskIndex, otherTaskIndex -> taskIndex < otherTaskIndex
+    boolean wasExecutedBefore(String... otherTaskNames) {
+        return otherTaskNames.every {otherTaskName ->
+            return runResult.compareExecutionOrder(taskName, otherTaskName) {
+                taskIndex, otherTaskIndex -> taskIndex < otherTaskIndex
+            }
         }
     }
 
-    boolean wasExecutedAfter(String otherTaskName) {
-        return runResult.compareExecutionOrder(taskName, otherTaskName) {
-            taskIndex, otherTaskIndex -> taskIndex > otherTaskIndex
+    boolean wasExecutedAfter(String... otherTaskNames) {
+        return otherTaskNames.every {otherTaskName ->
+            return runResult.compareExecutionOrder(taskName, otherTaskName) {
+                taskIndex, otherTaskIndex -> taskIndex > otherTaskIndex
+            }
         }
     }
 }

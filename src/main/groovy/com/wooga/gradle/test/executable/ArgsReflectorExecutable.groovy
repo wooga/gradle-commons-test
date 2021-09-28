@@ -4,7 +4,7 @@ import com.wooga.gradle.test.run.result.TaskResult
 import nebula.test.functional.ExecutionResult
 import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 
-import static com.wooga.gradle.test.GradleSpecUtils.isWindows
+import static com.wooga.gradle.test.SpecUtils.isWindows
 
 class ArgsReflectorExecutable {
 
@@ -17,11 +17,11 @@ class ArgsReflectorExecutable {
         this.envTokens = envTokens
         this.argsTokens = argsTokens
         this.fileTokens = ["[[${fakeExec.name}]]", "[[end ${fakeExec.name}]]"]
-        this.executable = write(fakeExec, fileTokens, exitCode)
+        this.executable = write(fakeExec, fileTokens, envTokens, argsTokens, exitCode)
 
     }
 
-    private static File write(File executable, String[] fileTokens, int exitCode) {
+    private static File write(File executable, String[] fileTokens, String[] envTokens, String[] argsTokens, int exitCode) {
         if (isWindows()) {
             executable << """
                 @echo off
@@ -29,6 +29,7 @@ class ArgsReflectorExecutable {
                 echo ${argsTokens[0]}
                 echo %*
                 echo ${argsTokens[1]}
+
                 echo ${envTokens[0]}
                 set
                 echo ${envTokens[1]}
@@ -38,13 +39,15 @@ class ArgsReflectorExecutable {
         } else {
             executable << """
                 #!/usr/bin/env bash
-                echo [[${executable.name}]]
-                echo [[arguments]]
+                echo ${fileTokens[0]}
+                echo ${argsTokens[0]}
                 echo \$@
-                echo [[environment]]
+                echo ${argsTokens[1]}
+
+                echo ${envTokens[0]}
                 env
-                echo [[end]]
-                echo [[end ${executable.name}]]
+                echo ${envTokens[1]}
+                echo ${fileTokens[1]}
                 exit ${exitCode}
             """.stripIndent()
         }
@@ -59,7 +62,7 @@ class ArgsReflectorExecutable {
         return allResults(result.standardOutput)
     }
 
-    Result firsResult(TaskResult taskResult) {
+    Result firstResult(TaskResult taskResult) {
         return firstResult(taskResult.taskLog)
     }
 
