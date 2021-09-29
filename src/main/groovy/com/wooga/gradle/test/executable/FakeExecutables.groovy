@@ -2,6 +2,24 @@ package com.wooga.gradle.test.executable
 
 import static com.wooga.gradle.test.SpecUtils.isWindows
 
+/**
+ * This static class contains several methods for creating useful scripts to fake executable files.
+ *
+ //this creates a `ArgsReflectorExecutable` object
+ def reflectorExec = FakeExecutables.argsReflector("filePath", exitStatus)
+
+ //executable file that should be used to run this object somewhere
+ reflectorExec.executable
+
+ //returns the first execution result of this file in a given log
+ ArgsReflectorExecutable.Result result = reflectorExec.firstResult(log)
+ //you can also fetch all results inside a given log like this
+ List< ArgsReflectorExecutable.Result> results = reflectorExec.allResults(log)
+
+ //with an ArgsReflectorExecutable.Result object, you can get:
+ result.args //List<String> of arguments passed to this executable
+ result.envs //Map<Sring, String> representing the environment at the executable execution
+ */
 class FakeExecutables {
 
     /**
