@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@Library('github.com/wooga/atlas-jenkins-pipeline@1.x') _
+@Library('github.com/wooga/atlas-jenkins-pipeline@fix/java-libs-release') _
 
 withCredentials([string(credentialsId: 'atlas_gradle_coveralls_token', variable: 'coveralls_token')]) {
     buildJavaLibraryOSSRH()
