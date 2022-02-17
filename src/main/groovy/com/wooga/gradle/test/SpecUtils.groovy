@@ -6,6 +6,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
+// TODO: Remove the methods already present on existing util classes
 class SpecUtils {
 
     static File emptyTmpFile(String first, String... more) {
