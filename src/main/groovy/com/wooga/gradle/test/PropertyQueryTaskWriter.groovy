@@ -2,6 +2,7 @@ package com.wooga.gradle.test
 
 import groovy.transform.InheritConstructors
 import nebula.test.functional.ExecutionResult
+import org.omg.CORBA.Environment
 
 /**
  * Writes a task for querying the value of a property
@@ -37,6 +38,7 @@ abstract class BasePropertyQueryTaskWriter {
 class PropertyQueryTaskWriter extends BasePropertyQueryTaskWriter {
 
     final String separator = " : "
+    final String pattern = "${path}${separator}"
 
     void write(File file) {
         file << """
@@ -50,10 +52,63 @@ class PropertyQueryTaskWriter extends BasePropertyQueryTaskWriter {
     }
 
     /**
-     * @return True if the property's toString() matches the given value
+     * @return True if the property's toString() equals the given value
      */
     Boolean matches(ExecutionResult result, Object value) {
         result.standardOutput.contains("${path}${separator}${value}")
+    }
+
+    /**
+     * @return True if the boolean property returns true
+     */
+    Boolean isTrue(ExecutionResult result) {
+        result.standardOutput.contains("${path}${separator}true")
+    }
+
+    /**
+     * @return True if the boolean property returns false
+     */
+    Boolean isFalse(ExecutionResult result) {
+        result.standardOutput.contains("${path}${separator}false")
+    }
+
+    /**
+     * @return True if the property is null
+     */
+    Boolean isNull(ExecutionResult result) {
+        result.standardOutput.contains("${path}${separator}null")
+    }
+
+    /**
+     * @return True if the property is not null
+     */
+    Boolean isNotNull(ExecutionResult result) {
+        !isNull(result)
+    }
+
+    /**
+     * @return True if the property's toString contains the given substring
+     */
+    Boolean contains(ExecutionResult result, String substring) {
+        def value = getValue(result)
+        value.contains(substring)
+    }
+
+    /**
+     * @return The line that contains the results of the query
+     */
+    String getLine(ExecutionResult result){
+        int startIndex = result.standardOutput.indexOf(pattern)
+        int endIndex = result.standardOutput.indexOf(System.lineSeparator(), startIndex)
+        result.standardOutput.substring(startIndex, endIndex).trim()
+    }
+
+    /**
+     * @return The value of the property
+     */
+    String getValue(ExecutionResult result){
+        def line = getLine(result)
+        line.replace(pattern, "").trim()
     }
 }
 

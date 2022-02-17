@@ -149,6 +149,12 @@ class IntegrationSpec extends nebula.test.IntegrationSpec {
         }
         value
     }
+
+    static File generateBatchWrapper(String fileName, Boolean printEnvironment = false) {
+        BatchmodeWrapper wrapper = new BatchmodeWrapper(fileName)
+        wrapper.printEnvironment = printEnvironment
+        wrapper.toTempFile()
+    }
 }
 
 
