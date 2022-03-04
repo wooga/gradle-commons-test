@@ -57,13 +57,7 @@ class IntegrationSpec extends nebula.test.IntegrationSpec {
         wrapValueBasedOnType(rawValue, type.simpleName, fallback)
     }
 
-
-    // TODO:
-    static String toGradleDslString(Object value, String type) {
-
-    }
-
-    // TODO: TO be replaced by the above method
+    // TODO: To be deprecated in the future by a better implementation
     String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
         def value
         def subType = null

@@ -37,7 +37,7 @@ dependencies {
     implementation localGroovy()
     implementation gradleApi()
 
-    implementation 'com.wooga.gradle:gradle-commons:0.2.0'
+    implementation 'com.wooga.gradle:gradle-commons:[1,2)'
     implementation 'com.google.guava:guava:29.0-jre'
     implementation 'com.github.stefanbirkner:system-rules:1.18.0'
     implementation 'junit:junit:4.13'
