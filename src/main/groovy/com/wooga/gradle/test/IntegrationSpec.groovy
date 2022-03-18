@@ -17,13 +17,17 @@
 
 package com.wooga.gradle.test
 
+import com.wooga.gradle.PlatformUtils
 import nebula.test.functional.ExecutionResult
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.contrib.java.lang.system.ProvideSystemProperty
 
+import java.nio.file.Files
+
 import static com.wooga.gradle.PlatformUtils.escapedPath
 import static com.wooga.gradle.PlatformUtils.windows
+
 
 class IntegrationSpec extends nebula.test.IntegrationSpec {
 
@@ -60,17 +64,10 @@ class IntegrationSpec extends nebula.test.IntegrationSpec {
     // TODO: To be deprecated in the future by a better implementation
     String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
         def value
-        def subType = null
 
-        if (type.endsWith("...") || type.endsWith("[]")) {
-            def parts = type.split(/(\.\.\.|\[\])/)
-            subType = parts.first()
-            type = type.endsWith("...") ? "..." : "[]"
-        } else {
-            def subtypeMatches = type =~ /(?<mainType>\w+)(<(?<subType>.*?)>)?/
-            subType = (subtypeMatches.matches()) ? subtypeMatches.group("subType") : null
-            type = (subtypeMatches.matches()) ? subtypeMatches.group("mainType") : type
-        }
+        def match = StringTypeMatch.match(type)
+        type = match.mainType
+        def subType = match.subType
 
         switch (type) {
             case "Closure":
