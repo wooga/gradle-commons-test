@@ -128,3 +128,4 @@ class IntegrationSpecSpec extends Specification {
         ["content": ["foo": "bar", "value": 22]] | "Map"   | "Provider<Map<String,CustomType>>" | "project.provider({['content' : 'My custom type is a string with value ${rawValue["content"]["value"]} and foo ${rawValue["content"]["foo"]}']})"
     }
 }
+

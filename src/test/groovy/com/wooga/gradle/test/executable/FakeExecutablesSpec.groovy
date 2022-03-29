@@ -23,11 +23,14 @@ class FakeExecutablesSpec extends Specification {
         log.size() > 0
         log.contains("[[end ${filePath}.bat]]")
         log.contains("[[${filePath}.bat]]")
+
         and: "exit status is the expected one"
         exitStatus == process.exitValue()
+
         and: "used arguments are recorded on result"
         def result = reflectorExec.firstResult(log)
         result.args == arguments
+
         and: "used environment are recorded on result"
         result.envs.entrySet().containsAll(environment.collectEntries {
             return it.split("=")
