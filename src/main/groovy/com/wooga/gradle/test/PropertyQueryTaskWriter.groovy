@@ -2,7 +2,6 @@ package com.wooga.gradle.test
 
 import groovy.transform.InheritConstructors
 import nebula.test.functional.ExecutionResult
-import org.omg.CORBA.Environment
 
 /**
  * Writes a task for querying the value of a property
