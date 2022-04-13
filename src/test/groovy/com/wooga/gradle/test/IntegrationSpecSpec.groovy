@@ -1,6 +1,6 @@
 package com.wooga.gradle.test
 
-import org.junit.contrib.java.lang.system.EnvironmentVariables
+
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
