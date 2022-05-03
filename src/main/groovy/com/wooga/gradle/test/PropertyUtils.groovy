@@ -1,5 +1,7 @@
 package com.wooga.gradle.test
 
+import static com.wooga.gradle.PlatformUtils.escapedPath
+
 class PropertyUtils {
 
     /**
@@ -46,6 +48,112 @@ class PropertyUtils {
             return (propertyChain.tail().reverse() << toSetter(propertyChain.head())).join(".")
         }
         "set${propertyChain.head().capitalize()}"
+    }
+
+    /**
+     * Generates a build.gradle-aware code line where rawValue is represented as type.
+     * @param rawValue value to be represented
+     * @param type type to convert rawValue to
+     * @param fallback fallback closure for specific types not covered by this method.
+     * @return build.gradle aware code string representing rawValue as type.
+     */
+    static String wrapValueBasedOnType(Object rawValue, Class type, Closure<String> fallback = null) {
+        return wrapValueBasedOnType(rawValue, type.simpleName, fallback)
+    }
+
+    /**
+     * Generates a build.gradle-aware code line where rawValue is represented as type.
+     * @param rawValue value to be represented
+     * @param type type to convert rawValue to
+     * @param fallback fallback closure for specific types not covered by this method.
+     * @return build.gradle aware code string representing rawValue as type.
+     */
+    static String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
+        String value
+
+        def match = StringTypeMatch.match(type)
+        type = match.mainType
+        def subType = match.subType
+
+        switch (type) {
+            case "Closure":
+                def returnType = subType ?: rawValue.class.typeName
+                value = "{${wrapValueBasedOnType(rawValue, returnType, fallback)}}"
+                break
+                // TODO:
+            case "Callable":
+                def returnType = subType ?: rawValue.class.typeName
+                value = "new java.util.concurrent.Callable<${returnType}>() {@Override ${returnType} call() throws Exception {${wrapValueBasedOnType(rawValue, returnType, fallback)}}"
+                break
+            case "Object":
+                value = "new Object() {@Override String toString() { ${wrapValueBasedOnType(rawValue, "String", fallback)} }}"
+                break
+            case "Directory":
+                value = "project.layout.projectDirectory.dir(${wrapValueBasedOnType(rawValue, "String", fallback)})"
+                break
+            case "RegularFile":
+                value = "project.layout.projectDirectory.file(${wrapValueBasedOnType(rawValue, "String", fallback)})"
+                break
+            case "Provider":
+                switch (subType) {
+                    case "RegularFile":
+                        value = "project.layout.buildDirectory.file(${wrapValueBasedOnType(rawValue, "Provider<String>", fallback)})"
+                        break
+                    case "Directory":
+                        value = "project.layout.buildDirectory.dir(${wrapValueBasedOnType(rawValue, "Provider<String>", fallback)})"
+                        break
+                    default:
+                        value = "project.provider(${wrapValueBasedOnType(rawValue, "Closure<${subType}>", fallback)})"
+                        break
+                }
+                break
+                // TODO: ...
+            case "java.lang.String":
+            case "String":
+                value = "'${escapedPath(rawValue.toString())}'"
+                break
+                // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
+            case "[]":
+                value = "${wrapValueBasedOnType(rawValue, "List<${subType}>", fallback)} as ${subType}[]"
+                break
+                // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
+            case "...":
+                value = "${rawValue.collect { wrapValueBasedOnType(it, subType, fallback) }.join(", ")}"
+                break
+            case "File":
+                value = "new File(${wrapValueBasedOnType(rawValue, String.class, fallback)})"
+                break
+                // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
+            case "java.util.ArrayList":
+            case "List":
+                def returnType = subType ?: String.class.typeName
+                value = "[${rawValue.collect { wrapValueBasedOnType(it, returnType, fallback) }.join(", ")}]"
+                break
+                // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
+            case "Map":
+                if (subType) {
+                    def split = subType.split(",", 2).collect { it.trim() }
+                    def keyType = split.first()
+                    def valueType = split.last()
+                    value = "[" + rawValue.collect { k, v -> "${wrapValueBasedOnType(k, keyType, fallback)} : ${wrapValueBasedOnType(v, valueType, fallback)}" }.join(", ") + "]"
+                } else {
+                    value = "[" + rawValue.collect { k, v -> "${wrapValueBasedOnType(k, k.getClass(), fallback)} : ${wrapValueBasedOnType(v, v.getClass(), fallback)}" }.join(", ") + "]"
+                }
+                value = value == "[]" ? "[:]" : value
+                break
+            default:
+                if (fallback) {
+                    fallback.setDelegate(this)
+                    if (fallback.getMaximumNumberOfParameters() == 1) {
+                        value = fallback(type)
+                    } else if (fallback.getMaximumNumberOfParameters() == 3) {
+                        value = fallback(rawValue, type, fallback)
+                    }
+                } else {
+                    value = rawValue
+                }
+        }
+        value
     }
 }
 

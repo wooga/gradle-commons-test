@@ -31,7 +31,6 @@ class IntegrationSpecSpec extends Specification {
         "Provider<List<String>>" | "Provider" | "List<String>"
     }
 
-
     @Unroll
     def "wrapValueBasedOnType wraps given value #rawValue of type #rawType to requested type #type"() {
         expect:
@@ -96,8 +95,8 @@ class IntegrationSpecSpec extends Specification {
         "/some/path/to/a/file"                                     | "String"        | "RegularFile"                         | "project.layout.projectDirectory.file('${rawValue}')"
         "/some/path/to/a/file"                                     | "String"        | "Directory"                           | "project.layout.projectDirectory.dir('${rawValue}')"
         "/some/path/to/a/file"                                     | "String"        | "Provider<File>"                      | "project.provider({new File('${rawValue}')})"
-        "/some/path/to/a/file"                                     | "String"        | "Provider<RegularFile>"               | "project.layout.buildDirectory.file('${rawValue}')"
-        "/some/path/to/a/file"                                     | "String"        | "Provider<Directory>"                 | "project.layout.buildDirectory.dir('${rawValue}')"
+        "/some/path/to/a/file"                                     | "String"        | "Provider<RegularFile>"               | "project.layout.buildDirectory.file(project.provider({'${rawValue}'}))"
+        "/some/path/to/a/file"                                     | "String"        | "Provider<Directory>"                 | "project.layout.buildDirectory.dir(project.provider({'${rawValue}'}))"
         ["some", "strings"]                                        | "String"        | "Provider<List<String>>"              | "project.provider({['some', 'strings']})"
         ["foo": "bar", "true": false, "one": 1]                    | "Map"           | "Provider<Map<String, String>>"       | "project.provider({['foo' : 'bar', 'true' : 'false', 'one' : '1']})"
         ["foo": ["bar"], "true": [false, false], "one": [1, 2, 3]] | "Map"           | "Provider<Map<String, List<String>>>" | "project.provider({['foo' : ['bar'], 'true' : ['false', 'false'], 'one' : ['1', '2', '3']]})"
