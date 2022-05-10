@@ -40,11 +40,49 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         environmentVariables.clear()
     }
 
-    static String osPath(String path) {
-        if (isWindows()) {
-            path = path.startsWith('/') ? "c:" + path : path
+    /**
+     * Adjusts the given file path according to the file system being used.
+     * This is to make sure paths are treated equally across different platforms
+     * @param path A relative or absolute file path
+     * @param relativeFallback Optionally, a root directory to start from if the path is found to be relative
+     * @return An absolute file path
+     */
+    static String osPath(String path, String relativeFallback = null) {
+
+        Boolean absolute = path.startsWith('/')
+        if (absolute) {
+            if (windows) {
+                String volume = getDiskVolume()
+                path = "${volume}${path[1..-1]}"
+            }
+        }
+        else if (relativeFallback != null) {
+            path = "${relativeFallback}/${path}"
         }
         new File(path).path
+    }
+
+    /**
+     * Adjusts the given file path according to the file system being used.
+     * This is to make sure paths are treated equally across different platforms.
+     * By default it will use the gradle project directory as the relative root (if the path is found to be relative)
+     * @param path A relative or absolute file path
+     * @return An absolute file path
+     */
+    String normalizePath(String path) {
+        osPath(path, projectDir.path)
+    }
+
+    /**
+     * @return Returns the name of the disk volume (such as 'C:/' for Windows)
+     */
+    static String getDiskVolume() {
+        def current = new File(".").absoluteFile
+        while (current.parentFile != null) {
+            current = current.parentFile
+        }
+        def volume = current.toString()
+        volume
     }
 
     Boolean fileExists(String... path) {
