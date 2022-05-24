@@ -2,6 +2,7 @@ package com.wooga.gradle.test
 
 import static com.wooga.gradle.PlatformUtils.escapedPath
 
+//TODO: reroute to com.wooga.gradle.PropertyUtils
 class PropertyUtils {
 
     /**
@@ -14,11 +15,11 @@ class PropertyUtils {
     }
 
     static String envNameFromProperty(String property) {
-        property.replaceAll(/([A-Z.])/, '_$1').replaceAll(/[.]/, '').toUpperCase()
+        property.replaceAll(/([A-Z.]|[0-9]+)/, '_$1').replaceAll(/[.]/, '').toUpperCase()
     }
 
     static String toCamelCase(String input) {
-        input.replaceAll(/\(\)/,"").replaceAll(/((\/|-|_|\.)+)([\w])/, { all, delimiterAll, delimiter, firstAfter -> "${firstAfter.toUpperCase()}" })
+        input.replaceAll(/\(\)/,"").toLowerCase().replaceAll(/((\/|-|_|\.)+)([\w])/, { all, delimiterAll, delimiter, firstAfter -> "${firstAfter.toUpperCase()}" })
     }
 
     /**
