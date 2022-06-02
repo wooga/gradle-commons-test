@@ -18,6 +18,10 @@ class WrappedValue {
         this.typeName = typeName
     }
 
+    WrappedValue(Object value, Class type) {
+        this(value, type.simpleName)
+    }
+
     static WrappedValue Boolean(Boolean value) {
         new WrappedValue(value, "Boolean")
     }
@@ -28,5 +32,9 @@ class WrappedValue {
 
     static WrappedValue Integer(Integer value) {
         new WrappedValue(value, "Integer")
+    }
+
+    static WrappedValue File(String path) {
+        new WrappedValue(path, "File")
     }
 }

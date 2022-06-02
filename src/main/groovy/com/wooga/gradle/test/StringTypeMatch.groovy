@@ -3,6 +3,10 @@ package com.wooga.gradle.test
 class StringTypeMatch {
     String mainType
     String subType
+    Boolean isCollection() {
+        mainType == "List" ||
+            mainType == "[]"
+    }
 
     static StringTypeMatch match(String type) {
         StringTypeMatch result = new StringTypeMatch()

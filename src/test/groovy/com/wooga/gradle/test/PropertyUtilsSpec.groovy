@@ -3,6 +3,10 @@ package com.wooga.gradle.test
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import com.wooga.gradle.test.serializers.IntegrationObjectProcessor
+import com.wooga.gradle.test.serializers.IntegrationObjectProcessorFunction
+
+import java.util.function.BiFunction
 
 class PropertyUtilsSpec extends Specification {
 
@@ -82,6 +86,48 @@ class PropertyUtilsSpec extends Specification {
         "foo"         | "setFoo"
         "foo.bar"     | "foo.setBar"
         "foo.bar.baz" | "foo.bar.setBaz"
+    }
 
+    @Unroll
+    def "preprocesses value #value of type #type into #expected"() {
+
+        given: "a preprocessor"
+        def processor = new IntegrationObjectProcessor()
+
+        and: "some transformation functions"
+        // String
+        BiFunction<Object, IntegrationHandler, String> stringProcessor = { Object v, integration ->
+            return ((String) v).toUpperCase()
+        }
+        processor.put("String", stringProcessor)
+        // Integer
+        IntegrationObjectProcessorFunction intPreprocessor = { v, IntegrationHandler i ->
+            return ((int) v) * 2
+        }
+        processor.put("Integer", intPreprocessor)
+        // Boolean
+        def booleanPreprocessor = { Boolean b -> false }
+        processor.transform(Boolean, booleanPreprocessor)
+        // Float
+        processor.transform(Float, { Float f ->
+            f + 1
+        })
+
+        and: "a mock integration"
+        IntegrationHandler integration = new CustomIntegrationHandler(File.createTempDir())
+
+        when:
+        def actual = processor.process(value, type, integration)
+
+        then:
+        expected == actual
+
+        where:
+        value    | type           | expected
+        "foobar" | String         | "FOOBAR"
+        "foobar" | "List<String>" | ["FOOBAR"]
+        7        | Integer        | 14
+        3.5      | Float          | 4.5
+        true     | Boolean        | false
     }
 }

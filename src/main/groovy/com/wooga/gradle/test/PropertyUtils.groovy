@@ -1,5 +1,7 @@
 package com.wooga.gradle.test
 
+import org.gradle.api.Incubating
+
 import static com.wooga.gradle.PlatformUtils.escapedPath
 
 //TODO: reroute to com.wooga.gradle.PropertyUtils
@@ -128,7 +130,13 @@ class PropertyUtils {
             case "java.util.ArrayList":
             case "List":
                 def returnType = subType ?: String.class.typeName
-                value = "[${rawValue.collect { wrapValueBasedOnType(it, returnType, fallback) }.join(", ")}]"
+                // If the value is not a list itself, add it to a list
+                if (rawValue instanceof List) {
+                    value = "[${rawValue.collect { wrapValueBasedOnType(it, returnType, fallback) }.join(", ")}]"
+                } else {
+                    value = "[${wrapValueBasedOnType(rawValue, returnType, fallback)}]"
+                }
+
                 break
                 // TODO: Assumes that the raw value is a collection, no auto-conversion to collection
             case "Map":
@@ -156,5 +164,39 @@ class PropertyUtils {
         }
         value
     }
-}
 
+    @Incubating
+    static String serializeValueToEnvironment(Object rawValue, String type, Closure<String> fallback = null) {
+
+        String value
+        def match = StringTypeMatch.match(type)
+        type = match.mainType
+        def subType = match.subType
+
+        switch (type) {
+            case "[]":
+                value = "${serializeValueToEnvironment(rawValue, "List<${subType}>", fallback)} as ${subType}[]"
+                break
+            case "...":
+                value = "${rawValue.collect { serializeValueToEnvironment(it, subType, fallback) }.join(",")}"
+                break
+            case "java.util.ArrayList":
+            case "List":
+                def returnType = subType ?: String.class.typeName
+                value = "${rawValue.collect { serializeValueToEnvironment(it, returnType, fallback) }.join(",")}"
+                break
+            default:
+                if (fallback) {
+                    fallback.setDelegate(this)
+                    if (fallback.getMaximumNumberOfParameters() == 1) {
+                        value = fallback(type)
+                    } else if (fallback.getMaximumNumberOfParameters() == 3) {
+                        value = fallback(rawValue, type, fallback)
+                    }
+                } else {
+                    value = rawValue
+                }
+        }
+        value
+    }
+}
