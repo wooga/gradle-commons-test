@@ -10,6 +10,7 @@ import com.wooga.gradle.test.serializers.PropertyTypeSerializer
 import groovyjarjarcommonscli.MissingArgumentException
 import nebula.test.Integration
 import org.gradle.api.Action
+import org.spockframework.lang.Wildcard
 
 import java.util.function.Function
 
@@ -77,6 +78,13 @@ class PropertySetterWriter extends BasePropertyWriter {
     }
 
     /**
+     * Assigns no type
+     */
+    PropertySetterWriter set(Object value, Wildcard wildcard) {
+        set(value, Wildcard.class)
+    }
+
+    /**
      * Assigns the value and type of value to be set by the writer by its invocation
      */
     PropertySetterWriter set(TestValue value, Class type) {
@@ -129,6 +137,14 @@ class PropertySetterWriter extends BasePropertyWriter {
      */
     PropertySetterWriter use(PropertySetInvocation method) {
         this.setInvocation = method
+        this
+    }
+
+    /**
+     * Assigns the invocation to use when setting the property by script
+     */
+    PropertySetterWriter use(Wildcard) {
+        this.setInvocation = PropertySetInvocation.none
         this
     }
 
@@ -233,7 +249,7 @@ class PropertySetterWriter extends BasePropertyWriter {
 
     PropertyWrite write(IntegrationHandler integration) {
 
-        if (value == null) {
+        if (value == null && location != PropertyLocation.none) {
             throw new MissingArgumentException("No value was set. Please make sure to call the set(value, type) method")
         }
 

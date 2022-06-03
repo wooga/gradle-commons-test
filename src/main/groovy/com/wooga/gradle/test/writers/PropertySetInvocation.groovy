@@ -10,6 +10,10 @@ abstract class PropertySetInvocation {
     abstract String getDefinition()
 
     /**
+     * No operation
+     */
+    static PropertySetInvocation none = new NonePropertySetInvocation()
+    /**
      * foobar.set(value)
      */
     static PropertySetInvocation providerSet = new ProviderPropertySetInvocation()
@@ -129,5 +133,21 @@ class CustomSetterPropertySetInvocation extends PropertySetInvocation {
 
     CustomSetterPropertySetInvocation(String setter) {
         setterName = setter
+    }
+}
+
+/**
+ * No operation
+ */
+class NonePropertySetInvocation extends PropertySetInvocation {
+
+    @Override
+    String getDefinition() {
+        "none"
+    }
+
+    @Override
+    String compose(String path, String wrappedValue) {
+        ""
     }
 }

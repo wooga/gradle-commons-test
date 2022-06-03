@@ -36,6 +36,9 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
         "pancakeFlavor" | "mint"                              | String                  | PropertySetInvocation.providerSet | PropertyLocation.script
         "pancakeFlavor" | "chocolate"                         | String                  | PropertySetInvocation.providerSet | PropertyLocation.environment
         "pancakeFlavor" | "cow"                               | String                  | PropertySetInvocation.providerSet | PropertyLocation.property
+        "pancakeFlavor" | null                                | String                  | PropertySetInvocation.none        | PropertyLocation.none
+        "pancakeFlavor" | null                                | _                       | PropertySetInvocation.none        | PropertyLocation.none
+        "pancakeFlavor" | null                                | _                       | _                                 | PropertyLocation.none
         "bake"          | true                                | Boolean                 | PropertySetInvocation.providerSet | PropertyLocation.script
         "bake"          | true                                | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.script
         "bake"          | true                                | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.environment
