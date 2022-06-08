@@ -1,5 +1,6 @@
 package com.wooga.gradle.test.writers
 
+
 import com.wooga.gradle.test.PropertyLocation
 import com.wooga.gradle.test.serializers.PropertyTypeSerializer
 import com.wooga.gradle.test.mock.MockTaskIntegrationSpec
@@ -29,37 +30,61 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
         runPropertyQuery(getter, setter).matches(value)
 
         where:
-        property        | value                               | type                    | method                            | location
-        "logFile"       | "a/b/c/pancakes.txt"                | File                    | PropertySetInvocation.providerSet | PropertyLocation.script
-        "logFile"       | TestValue.set("a/b/c/pancakes.txt") | File                    | PropertySetInvocation.providerSet | PropertyLocation.script
-        "logFile"       | "a/b/c/pancakes.txt"                | "Provider<RegularFile>" | PropertySetInvocation.providerSet | PropertyLocation.script
-        "pancakeFlavor" | "mint"                              | String                  | PropertySetInvocation.providerSet | PropertyLocation.script
-        "pancakeFlavor" | "chocolate"                         | String                  | PropertySetInvocation.providerSet | PropertyLocation.environment
-        "pancakeFlavor" | "cow"                               | String                  | PropertySetInvocation.providerSet | PropertyLocation.property
-        "pancakeFlavor" | null                                | String                  | PropertySetInvocation.none        | PropertyLocation.none
-        "pancakeFlavor" | null                                | _                       | PropertySetInvocation.none        | PropertyLocation.none
-        "pancakeFlavor" | null                                | _                       | _                                 | PropertyLocation.none
-        "bake"          | true                                | Boolean                 | PropertySetInvocation.providerSet | PropertyLocation.script
-        "bake"          | true                                | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.script
-        "bake"          | true                                | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.environment
-        "bake"          | true                                | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.property
-        "tags"          | ["foo", "bar"]                      | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.script
-        "tags"          | TestValue.set(["foo", "bar"])       | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.script
-        "tags"          | ["foo", "bar"]                      | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.environment
-        "tags"          | ["foo", "bar"]                      | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.property
-        "tags"          | ["foo", "bar"]                      | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.property
+        property        | value                                                                              | type                    | method                            | location
+        "logFile"       | "a/b/c/pancakes.txt"                                                               | File                    | PropertySetInvocation.providerSet | PropertyLocation.script
+        "logFile"       | TestValue.set("a/b/c/pancakes.txt")                                                | File                    | PropertySetInvocation.providerSet | PropertyLocation.script
+        "logFile"       | "a/b/c/pancakes.txt"                                                               | "Provider<RegularFile>" | PropertySetInvocation.providerSet | PropertyLocation.script
+        "pancakeFlavor" | "mint"                                                                             | String                  | PropertySetInvocation.providerSet | PropertyLocation.script
+        "pancakeFlavor" | "chocolate"                                                                        | String                  | PropertySetInvocation.providerSet | PropertyLocation.environment
+        "pancakeFlavor" | "cow"                                                                              | String                  | PropertySetInvocation.providerSet | PropertyLocation.property
+        "pancakeFlavor" | null                                                                               | String                  | PropertySetInvocation.none        | PropertyLocation.none
+        "pancakeFlavor" | null                                                                               | _                       | PropertySetInvocation.none        | PropertyLocation.none
+        "pancakeFlavor" | null                                                                               | _                       | _                                 | PropertyLocation.none
+        "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.providerSet | PropertyLocation.script
+        "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.script
+        "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.environment
+        "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.property
+        "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.script
+        "tags"          | TestValue.set(["foo", "bar"])                                                      | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.script
+        "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.environment
+        "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.property
+        "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.property
+        "numbers"       | TestValue.none().expect(PropertyTask.PropertyTaskConventions.numbers.defaultValue) | Integer                 | _                                 | _
 
         setter = new PropertySetterWriter(subjectUnderTestName, property)
             .set(value, type)
             .to(location)
             .use(method)
-            .forExtension(PropertyTask.extensionName)
+            .withKeyComposedFrom(PropertyTask.extensionName)
 
         getter = new PropertyGetterTaskWriter(setter)
             .configure({
                 it.withFilePathsRelativeToProject()
                     .withFileProvidersRelativeTo("build")
             })
+    }
+
+    @Unroll
+    def "can set project file with value #value, type #type if #location"() {
+        expect:
+        runPropertyQuery(getter, setter).matches(value)
+
+        where:
+        property  | value                                                                        | type | method                            | location
+        "logsDir" | TestValue.set("build/custom/logs").expectAsProjectFile()                     | File | PropertySetInvocation.providerSet | PropertyLocation.script
+        "logsDir" | TestValue.projectFile("build/custom/logs").describe("by convenience method") | File | PropertySetInvocation.providerSet | PropertyLocation.script
+        // Setting it from the properties sets it to build/
+        "logsDir" | TestValue.set("custom/logs").expectProjectFile("build/custom/logs")          | File | _                                 | PropertyLocation.property
+        // Setting it from the environment sets it to build/
+        "logsDir" | TestValue.set("custom/logs").expectProjectFile("build/custom/logs")          | File | PropertySetInvocation.none        | PropertyLocation.environment
+
+        setter = new PropertySetterWriter(subjectUnderTestName, property)
+            .set(value, type)
+            .to(location)
+            .use(method)
+            .withKeyComposedFrom(PropertyTask.extensionName)
+
+        getter = new PropertyGetterTaskWriter(setter)
     }
 
     @Unroll

@@ -28,7 +28,7 @@ class PropertyGetterTaskWriter extends BasePropertyQueryTaskWriter {
     Function<String, String> onFilterStdout
 
     // By default, evaluate using script behavior
-    static PropertyEvaluation evaluation = new ScriptPropertyEvaluation()
+    PropertyEvaluation evaluation = new ScriptPropertyEvaluation()
 
     /**
      * Associates the type of property this query is checking.

@@ -117,6 +117,13 @@ class PropertySetterWriter extends BasePropertyWriter {
     /**
      * Assigns the location, which determines by what mechanism the value will be set (script, environment, etc)
      */
+    PropertySetterWriter to(Wildcard wildcard) {
+        to(PropertyLocation.none)
+    }
+
+    /**
+     * Assigns the location, which determines by what mechanism the value will be set (script, environment, etc)
+     */
     PropertySetterWriter toScript(PropertySetInvocation method = PropertySetInvocation.providerSet) {
         this.location = PropertyLocation.script
         this.setInvocation = method
@@ -149,6 +156,14 @@ class PropertySetterWriter extends BasePropertyWriter {
     }
 
     /**
+     * Instructs the writer to use the given key for the environment/property locations
+     */
+    PropertySetterWriter withKey(String key) {
+        withEnvironmentKey(key)
+        withPropertyKey(key)
+    }
+
+    /**
      * Instructs the writer to use a specific environment key to be used when setting the property onto the environment
      */
     PropertySetterWriter withEnvironmentKey(String key) {
@@ -165,12 +180,20 @@ class PropertySetterWriter extends BasePropertyWriter {
     }
 
     /**
-     * Instructs the writer to write to properties file and to the environment using the extension name
-     * instead of whatever was initially set
+     * Instructs the writer to write to properties file and to the environment using a key
+     * generated from the given object name (such as an extension) and the previously set property name.
      */
-    PropertySetterWriter forExtension(String extensionName) {
-        withPropertyKey(composePath(extensionName.toLowerCase(), propertyName))
-        withEnvironmentKey(envNameFromProperty(extensionName.toLowerCase(), propertyName))
+    PropertySetterWriter withKeyComposedFrom(String objectName) {
+        withPropertyKey(composePath(objectName.toLowerCase(), propertyName))
+        withEnvironmentKey(envNameFromProperty(objectName.toLowerCase(), propertyName))
+    }
+
+    /**
+     * Instructs the writer to write to properties file and to the environment using a key
+     * generated from the previously set object name and the previously set property name.
+     */
+    PropertySetterWriter withKeyComposed() {
+        withKeyComposedFrom(objectName)
     }
 
     /**
