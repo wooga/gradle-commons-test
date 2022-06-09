@@ -10,9 +10,11 @@ import java.util.function.Function
  */
 class TestValue {
 
-    private Function<IntegrationHandler, Object> process
+    private Function<IntegrationHandler, Object> onProcessRawValue
+    private Function<IntegrationHandler, Object> onProcessExpectedValue
     private Object expected
     private Object raw
+    private String message
 
     /**
      * The value that was used to set
@@ -48,10 +50,14 @@ class TestValue {
 
     @Override
     String toString() {
+        String res = "\"${raw}\""
         if (expected != null) {
-            return "\"${raw}\" expecting \"${expected}\""
+            res += " expecting \"${expected}\""
         }
-        raw
+        if (message != null) {
+            res += " ${message}"
+        }
+        res
     }
 
     //------------------------------------------------------------------------/
@@ -59,6 +65,10 @@ class TestValue {
     //------------------------------------------------------------------------/
     static TestValue set(Object raw) {
         new TestValue(raw)
+    }
+
+    static TestValue none() {
+        new TestValue(null)
     }
 
     static TestValue list(Object... values) {
@@ -84,7 +94,11 @@ class TestValue {
     }
 
     static TestValue projectFile(String path) {
-        set(path).process({it -> new File(it.projectDir, path)})
+        set(path).process({ it -> new File(it.projectDir, path) })
+    }
+
+    static TestValue projectBuildFile(String path) {
+        projectFile("build/" + path)
     }
 
     //------------------------------------------------------------------------/
@@ -94,7 +108,7 @@ class TestValue {
      * Sets an evaluation function that will modify the raw value
      */
     TestValue process(Function<IntegrationHandler, Object> func) {
-        process = func
+        onProcessRawValue = func
         this
     }
 
@@ -102,8 +116,11 @@ class TestValue {
      * If there's an evaluation function set, evaluates the current raw value
      */
     TestValue evaluate(IntegrationHandler integration) {
-        if (process != null) {
-            raw = process.apply(integration)
+        if (onProcessRawValue != null) {
+            raw = onProcessRawValue.apply(integration)
+        }
+        if (onProcessExpectedValue != null) {
+            expected = onProcessExpectedValue.apply(integration)
         }
         this
     }
@@ -116,6 +133,14 @@ class TestValue {
      */
     TestValue asList() {
         set("[${raw}]")
+        this
+    }
+
+    /**
+     * Appends additional information to be printed when toString() is invoked
+     */
+    TestValue describe(String message) {
+        this.message = message
         this
     }
 
@@ -137,7 +162,31 @@ class TestValue {
      */
     TestValue expect(Function<Object, Object> closure) {
         expect(closure.apply(raw))
-        set(raw)
+        this
+    }
+
+    /**
+     * Sets the expected value according to one generated from the integration
+     * @param function A function that uses the integration to generate a value
+     */
+    TestValue expectIntegration(Function<IntegrationHandler, Object> function) {
+        onProcessExpectedValue = function
+        this
+    }
+
+    /**
+     * Sets the expected value according to one generated from the integration
+     * @param function The path to the file, relative to the project directory
+     */
+    TestValue expectProjectFile(String path) {
+        expectIntegration({ IntegrationHandler it -> new File(it.projectDir, path) })
+    }
+
+    /**
+     * Sets the expected value according to one generated from the integration (from the currently set raw value)
+     */
+    TestValue expectAsProjectFile() {
+        expectProjectFile((String) raw)
     }
 
     /**
@@ -146,7 +195,7 @@ class TestValue {
      */
     TestValue expect(Closure<Object> closure) {
         expect(closure(raw))
-        set(raw)
+        this
     }
 
     /**
@@ -157,7 +206,4 @@ class TestValue {
         // Add a whitespace after each separator
         expect("[${raw.toString().replaceAll(/${separator}/, "${separator} ")}]")
     }
-
-    //TestValue expectRelativePath(){
-    //}
 }

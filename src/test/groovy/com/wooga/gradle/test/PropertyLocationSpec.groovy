@@ -36,7 +36,37 @@ class PropertyLocationSpec extends Specification {
         PropertyLocation.script      | "b"
         PropertyLocation.property    | "c"
         PropertyLocation.environment | "d"
-
     }
+
+    def "can retrieve all values like an enum type"() {
+        when:
+        PropertyLocation[] locations = PropertyLocation.values()
+
+        then:
+        locations.length == 5
+        locations.contains(PropertyLocation.none)
+        locations.contains(PropertyLocation.script)
+        locations.contains(PropertyLocation.property)
+        locations.contains(PropertyLocation.environment)
+        locations.contains(PropertyLocation.commandLine)
+    }
+
+    @Unroll
+    def "can call valueOf for #name expecting #value like an enum type"() {
+        when:
+        def actual = PropertyLocation.valueOf(name)
+
+        then:
+        expected == actual
+
+        where:
+        name          | expected
+        "none"        | PropertyLocation.none
+        "script"      | PropertyLocation.script
+        "property"    | PropertyLocation.property
+        "environment" | PropertyLocation.environment
+        "commandLine" | PropertyLocation.commandLine
+    }
+
 }
 

@@ -1,7 +1,10 @@
 package com.wooga.gradle.test.writers
 
+import com.wooga.gradle.BaseSpec
 import com.wooga.gradle.PropertyLookup
 import com.wooga.gradle.test.mock.MockTask
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -11,7 +14,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.options.Option
 
-class PropertyTask extends MockTask {
+class PropertyTask extends MockTask implements BaseSpec {
 
     static final String extensionName = "Foobar"
 
@@ -42,33 +45,40 @@ class PropertyTask extends MockTask {
     }
 
     private final ListProperty<String> tags
+
     ListProperty<String> getTags() {
         tags
     }
 
     private final Property<Integer> numbers
+
     @Input
     Property<Integer> getNumbers() {
         numbers
     }
+
     void setNumbers(Provider<Integer> value) {
         numbers.set(value)
     }
 
     private final Property<MockObject> custom
+
     @Input
     Property<MockObject> getCustom() {
         custom
     }
+
     void setCustom(Provider<MockObject> value) {
         custom.set(value)
     }
 
     private final Property<MockEnum> customEnum
+
     @Input
     Property<MockEnum> getCustomEnum() {
         customEnum
     }
+
     void setCustomEnum(Provider<MockEnum> value) {
         customEnum.set(value)
     }
@@ -112,6 +122,20 @@ class PropertyTask extends MockTask {
         })
     }
 
+    private final DirectoryProperty logsDir = objects.directoryProperty()
+
+    DirectoryProperty getLogsDir() {
+        logsDir
+    }
+
+    void setLogsDir(File value) {
+        logsDir.set(value)
+    }
+
+    void setLogsDir(Provider<Directory> value) {
+        logsDir.set(value)
+    }
+
     PropertyTask() {
         bake = project.objects.property(Boolean)
         logFile = project.objects.fileProperty()
@@ -122,7 +146,9 @@ class PropertyTask extends MockTask {
         customEnum = project.objects.property(MockEnum)
         exclude = project.objects.listProperty(File)
 
+        numbers.convention(PropertyTaskConventions.numbers.getIntegerValueProvider(project))
         bake.convention(PropertyTaskConventions.bake.getBooleanValueProvider(project))
+        logsDir.convention(PropertyTaskConventions.logsDir.getDirectoryValueProvider(project))
         pancakeFlavor.convention(PropertyTaskConventions.pancakeFlavor.getStringValueProvider(project))
         // TODO: Implement getListValueProvider<T>, getListStringValueProvider (common use case),
         //  getValueProvider that takes a serializer
@@ -132,7 +158,9 @@ class PropertyTask extends MockTask {
     }
 
     static class PropertyTaskConventions {
+        static PropertyLookup numbers = new PropertyLookup("FOOBAR_NUMBERS", "foobar.numbers", 7)
         static PropertyLookup bake = new PropertyLookup("FOOBAR_BAKE", "foobar.bake", null)
+        static PropertyLookup logsDir = new PropertyLookup("FOOBAR_LOGS_DIR", "foobar.logsDir", null)
         static PropertyLookup pancakeFlavor = new PropertyLookup("FOOBAR_PANCAKE_FLAVOR", "foobar.pancakeFlavor", null)
         static PropertyLookup tags = new PropertyLookup("FOOBAR_TAGS", "foobar.tags", null)
     }

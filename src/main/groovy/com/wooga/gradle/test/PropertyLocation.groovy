@@ -20,17 +20,36 @@ abstract class PropertyLocation {
     String toString() {
         return reason()
     }
+
     static PropertyLocation none = new NonePropertyLocation()
     static PropertyLocation script = new BuildScriptPropertyLocation()
     static PropertyLocation property = new PropertiesFilePropertyLocation()
     static PropertyLocation environment = new EnvironmentPropertyLocation()
     static PropertyLocation commandLine = new CommandLineOptionPropertyLocation()
+
+    static PropertyLocation valueOf(String name) {
+        switch (name) {
+            case "script":
+                return script
+            case "property":
+                return property
+            case "environment":
+                return environment
+            case "commandLine":
+                return commandLine
+        }
+        none
+    }
+
+    static PropertyLocation[] values() {
+        [none, script, property, environment, commandLine]
+    }
 }
 
 /**
  * Fallback which does nothing. NOTHING!
  */
-class NonePropertyLocation extends PropertyLocation{
+class NonePropertyLocation extends PropertyLocation {
 
     @Override
     String reason() {
