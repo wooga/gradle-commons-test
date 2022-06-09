@@ -30,9 +30,6 @@ class PropertyGetterTaskWriter extends BasePropertyQueryTaskWriter {
     // By default, evaluate using script behavior
     PropertyEvaluation evaluation = new ScriptPropertyEvaluation()
 
-    //------------------------------------------------------------------------/
-    // Constructors
-    //------------------------------------------------------------------------/
     /**
      * Associates the type of property this query is checking.
      * It will inherit the typename, the serializers
@@ -41,13 +38,6 @@ class PropertyGetterTaskWriter extends BasePropertyQueryTaskWriter {
         super(setter.path, invocation, taskName)
         typeName = setter.typeName
         // TODO: Set default stdout filter
-    }
-
-    /**
-     * Binds this to the property of the given object
-     */
-    PropertyGetterTaskWriter(String objectName, String propertyName, String invocation = ".getOrNull()") {
-        super("${objectName}.${propertyName}", invocation)
     }
 
     //------------------------------------------------------------------------/

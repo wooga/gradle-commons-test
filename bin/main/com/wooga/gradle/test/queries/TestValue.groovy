@@ -89,25 +89,16 @@ class TestValue {
         set(raw)
     }
 
-    /**
-     * Given a sequence of paths, joins them together (after having used the IO function to get the absolute path)
-     */
     static TestValue joinFilePaths(List<String> values, String separator = ",") {
         join(values.collect({ new File(it).path }), separator)
     }
 
-    /**
-     * Given the relative path "foo.bar", expects it to be a project file under $PROJECT/foo.bar
-     */
     static TestValue projectFile(String path) {
         set(path).process({ it -> new File(it.projectDir, path) })
     }
 
-    /**
-     * Given the relative path "foo.bar", expects it to be a build file under $PROJECT/build/foo.bar
-     */
-    static TestValue buildFile(String path) {
-        projectFile(path).expectProjectFile("build/" + path)
+    static TestValue projectBuildFile(String path) {
+        projectFile("build/" + path)
     }
 
     //------------------------------------------------------------------------/
@@ -189,7 +180,6 @@ class TestValue {
      */
     TestValue expectProjectFile(String path) {
         expectIntegration({ IntegrationHandler it -> new File(it.projectDir, path) })
-        describe("file relative to project at ${path}")
     }
 
     /**
@@ -197,7 +187,6 @@ class TestValue {
      */
     TestValue expectAsProjectFile() {
         expectProjectFile((String) raw)
-        describe("file relative to project")
     }
 
     /**

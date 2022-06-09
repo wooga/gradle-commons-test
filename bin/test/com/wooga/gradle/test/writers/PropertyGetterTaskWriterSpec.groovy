@@ -30,28 +30,6 @@ class PropertyGetterTaskWriterSpec extends MockTaskIntegrationSpec<PropertyTask>
     }
 
     @Unroll
-    def "property query with object/property constructor matches #value -> #expected"() {
-
-        given:
-        setSubjectTaskProvider(property, WrappedValue.String(value))
-
-        when:
-        def writer = new PropertyGetterTaskWriter(subjectUnderTestName, property)
-        def query = runPropertyQuery(writer).withoutAssertions()
-
-        then:
-        match == query.matches(expected)
-
-        where:
-        value  | expected | match
-        "mint" | "mint"   | true
-        null   | null     | true
-        "foo"  | "bar"    | false
-
-        property = "pancakeFlavor"
-    }
-
-    @Unroll
     def "property query checks property with value '#value' is null -> #expected"() {
 
         given:

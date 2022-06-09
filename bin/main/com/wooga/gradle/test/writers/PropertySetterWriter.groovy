@@ -16,15 +16,8 @@ import java.util.function.Function
 
 import static com.wooga.gradle.test.PropertyUtils.envNameFromProperty
 
-/**
- * Used for setting the value of a task/extension property, in the scope of an integration test,
- * through a variety of means (script, environment, etc)
- */
 class PropertySetterWriter extends BasePropertyWriter {
 
-    //------------------------------------------------------------------------/
-    // Fields
-    //------------------------------------------------------------------------/
     /**
      * The object the property belongs to (could be an extension, task)
      */
@@ -55,18 +48,12 @@ class PropertySetterWriter extends BasePropertyWriter {
     Map<PropertyLocation, Map<String, PropertyTypeSerializer>> serializationFallbacks = new HashMap<PropertyLocation, Map<String, PropertyTypeSerializer>>()
     Closure<String> legacySerializationFallback
 
-    //------------------------------------------------------------------------/
-    // Constructor
-    //------------------------------------------------------------------------/
     PropertySetterWriter(String objectName, String propertyName) {
         super(composePath(objectName, propertyName))
         this.objectName = objectName
         this.propertyName = propertyName
     }
 
-    //------------------------------------------------------------------------/
-    // Assignment
-    //------------------------------------------------------------------------/
     /**
      * Assigns the value and type of value to be set by the writer by its invocation
      */
@@ -119,9 +106,6 @@ class PropertySetterWriter extends BasePropertyWriter {
         this
     }
 
-    //------------------------------------------------------------------------/
-    // Location
-    //------------------------------------------------------------------------/
     /**
      * Assigns the location, which determines by what mechanism the value will be set (script, environment, etc)
      */
@@ -171,9 +155,6 @@ class PropertySetterWriter extends BasePropertyWriter {
         this
     }
 
-    //------------------------------------------------------------------------/
-    // Keys (for properties, environment)
-    //------------------------------------------------------------------------/
     /**
      * Instructs the writer to use the given key for the environment/property locations
      */
@@ -215,9 +196,6 @@ class PropertySetterWriter extends BasePropertyWriter {
         withKeyComposedFrom(objectName)
     }
 
-    //------------------------------------------------------------------------/
-    // Custom preprocessing of values
-    //------------------------------------------------------------------------/
     /**
      * Instructs the writer to preprocess objects of the given type (before serialization)
      */
@@ -243,9 +221,6 @@ class PropertySetterWriter extends BasePropertyWriter {
         this
     }
 
-    //------------------------------------------------------------------------/
-    // Serialization
-    //------------------------------------------------------------------------/
     /**
      * Includes a serialization fallback that will be used when trying to serialize the value
      * into a specific location
@@ -295,9 +270,6 @@ class PropertySetterWriter extends BasePropertyWriter {
         this
     }
 
-    //------------------------------------------------------------------------/
-    // Main Procedures
-    //------------------------------------------------------------------------/
     PropertyWrite write(IntegrationHandler integration) {
 
         if (value == null && location != PropertyLocation.none) {

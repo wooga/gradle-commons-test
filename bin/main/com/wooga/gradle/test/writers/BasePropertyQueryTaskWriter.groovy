@@ -5,10 +5,6 @@ import com.wooga.gradle.test.PropertyUtils
 
 abstract class BasePropertyQueryTaskWriter extends BasePropertyWriter {
 
-    /**
-     * The invocation used to access the value of the property.
-     * By default, '.getOrNull()'
-     */
     String invocation
 
     BasePropertyQueryTaskWriter(String path, String invocation = ".getOrNull()", String taskName = null) {
