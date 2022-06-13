@@ -230,5 +230,27 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
             .set(value, type)
         getter = new PropertyGetterTaskWriter(setter)
     }
+
+    @Unroll
+    def "can set property #path with method #method"() {
+        expect:
+        def query = runPropertyQuery(getter, setter)
+        query.matches(value)
+
+        where:
+        property          | nestedProperty | value      | type    | method
+        "consoleSettings" | "useFoobar"    | true       | Boolean | PropertySetInvocation.assignment
+        "consoleSettings" | "useFoobar"    | true       | Boolean | PropertySetInvocation.assignment.inConfiguration()
+        "consoleSettings" | "prefix"       | "pancakes" | String  | PropertySetInvocation.assignment
+        "consoleSettings" | "prefix"       | "waffles"  | String  | PropertySetInvocation.assignment.inConfiguration()
+        "consoleSettings" | "prefix"       | "pancakes" | String  | PropertySetInvocation.customSetter("setMyPrefix")
+        "consoleSettings" | "prefix"       | "waffles"  | String  | PropertySetInvocation.customSetter("setMyPrefix").inConfiguration()
+
+        path = "${property}.get().${nestedProperty}"
+        setter = new PropertySetterWriter(subjectUnderTestName, path)
+            .set(value, type)
+            .use(method)
+        getter = new PropertyGetterTaskWriter(setter, "")
+    }
 }
 

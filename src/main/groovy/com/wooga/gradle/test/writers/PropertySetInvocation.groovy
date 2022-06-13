@@ -1,6 +1,7 @@
 package com.wooga.gradle.test.writers
 
 import com.wooga.gradle.test.PropertyUtils
+import org.gradle.api.Action
 
 /**
  * Defines how a property has its value set in a script
@@ -49,6 +50,67 @@ abstract class PropertySetInvocation {
     static PropertySetInvocation customSetter(String name) {
         new CustomSetterPropertySetInvocation(name)
     }
+
+    /**
+     * @param name The invocation to use
+     * @return An invocation inside a configuration block
+     */
+    static PropertySetInvocation configuration(PropertySetInvocation inner) {
+        new ConfigurationPropertySetInvocation(inner)
+    }
+
+    /**
+     * @param outer The name of the outer property
+     * @param inner The inner invocation to use
+     * @return This invocation, but invoked inside a configuration block
+     */
+    PropertySetInvocation inConfiguration(Action<ConfigurationPropertySetInvocation> onConfigure = null) {
+        def config = new ConfigurationPropertySetInvocation(this)
+        if (onConfigure != null) {
+            onConfigure(config)
+        }
+        config
+    }
+}
+
+class ConfigurationPropertySetInvocation extends PropertySetInvocation {
+
+    PropertySetInvocation inner
+    Boolean compact = false
+    Boolean implicit = true
+
+    ConfigurationPropertySetInvocation(PropertySetInvocation inner) {
+        this.inner = inner
+    }
+
+    @Override
+    String getDefinition() {
+        "${inner} in configuration block"
+    }
+
+    @Override
+    String compose(String path, String wrappedValue) {
+        // For a configuration block, we need not use the get()
+        if (implicit) {
+            path = path.replaceAll(".get()", "")
+        }
+        String[] components = PropertyUtils.getPathComponents(path)
+        String outerPath = components.take(components.length - 1).join(".")
+        String innerPath = components.last()
+
+        if (compact) {
+            return "${outerPath} { ${inner.compose(innerPath, wrappedValue)} }"
+        }
+
+        """${outerPath} {
+${inner.compose(innerPath, wrappedValue)}
+}""".stripIndent().stripMargin().trim()
+    }
+
+    ConfigurationPropertySetInvocation asCompact() {
+        compact = true
+        this
+    }
 }
 
 /**
@@ -74,6 +136,7 @@ class AssignmentPropertySetInvocation extends PropertySetInvocation {
     String getDefinition() {
         "assignment"
     }
+
     @Override
     String compose(String path, String wrappedValue) {
         "${path} = ${wrappedValue}"
@@ -88,6 +151,7 @@ class SetterPropertySetInvocation extends PropertySetInvocation {
     String getDefinition() {
         "default property setter"
     }
+
     @Override
     String compose(String path, String wrappedValue) {
         "${PropertyUtils.toSetter(path)}(${wrappedValue})"
@@ -102,6 +166,7 @@ class MethodPropertySetInvocation extends PropertySetInvocation {
     String getDefinition() {
         "method invocation"
     }
+
     @Override
     String compose(String path, String wrappedValue) {
         "${path}(${wrappedValue})"
@@ -122,10 +187,10 @@ class CustomSetterPropertySetInvocation extends PropertySetInvocation {
 
     @Override
     String compose(String path, String wrappedValue) {
-        def components = path.split(/\./)
-        if (components.length > 1 ){
+        def components = PropertyUtils.getPathComponents(path)
+        if (components.length > 1) {
             path = components.take(components.length - 1).join(".") + ".${setterName}"
-        } else{
+        } else {
             path = setterName
         }
         "${path}(${wrappedValue})"

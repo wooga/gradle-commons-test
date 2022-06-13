@@ -47,8 +47,20 @@ trait TaskIntegrationSpec<T extends DefaultTask> {
         """.stripIndent()
     }
 
+    /**
+     * @deprecated Please use 'addSubjectTask' instead
+     */
+    @Deprecated
     void addMockTask(Boolean force, String... lines) {
+        addSubjectTask(force, lines)
+    }
+
+    void addSubjectTask(Boolean force, String... lines) {
         addTask(subjectUnderTestName, subjectUnderTestTypeName, force, lines)
+    }
+
+    void addSubjectTask() {
+        addSubjectTask(true)
     }
 
     void setSubjectTaskProvider(String name, WrappedValue wrap) {

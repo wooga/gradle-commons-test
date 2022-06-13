@@ -3,16 +3,20 @@ package com.wooga.gradle.test.writers
 import com.wooga.gradle.BaseSpec
 import com.wooga.gradle.PropertyLookup
 import com.wooga.gradle.test.mock.MockTask
+import org.gradle.api.Action
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.options.Option
+
+import static org.gradle.util.ConfigureUtil.configureUsing
 
 class PropertyTask extends MockTask implements BaseSpec {
 
@@ -136,6 +140,31 @@ class PropertyTask extends MockTask implements BaseSpec {
         logsDir.set(value)
     }
 
+    private final Property<ConsoleSettings> consoleSettings = objects.property(ConsoleSettings)
+
+    @Console
+    Property<ConsoleSettings> getConsoleSettings() {
+        consoleSettings
+    }
+
+    void setConsoleSettings(ConsoleSettings value) {
+        consoleSettings.set(value)
+    }
+
+    void setConsoleSettings(Provider<ConsoleSettings> value) {
+        consoleSettings.set(value)
+    }
+
+    void consoleSettings(Closure configuration) {
+        consoleSettings(configureUsing(configuration))
+    }
+
+    void consoleSettings(Action<ConsoleSettings> action) {
+        def settings = consoleSettings.getOrElse(new ConsoleSettings())
+        action.execute(settings)
+        consoleSettings.set(settings)
+    }
+
     PropertyTask() {
         bake = project.objects.property(Boolean)
         logFile = project.objects.fileProperty()
@@ -146,6 +175,7 @@ class PropertyTask extends MockTask implements BaseSpec {
         customEnum = project.objects.property(MockEnum)
         exclude = project.objects.listProperty(File)
 
+        consoleSettings.convention(new ConsoleSettings())
         numbers.convention(PropertyTaskConventions.numbers.getIntegerValueProvider(project))
         bake.convention(PropertyTaskConventions.bake.getBooleanValueProvider(project))
         logsDir.convention(PropertyTaskConventions.logsDir.getDirectoryValueProvider(project))
@@ -182,5 +212,13 @@ class MockObject {
     @Override
     String toString() {
         return name
+    }
+}
+
+class ConsoleSettings {
+    Boolean useFoobar
+    String prefix
+    String setMyPrefix(String value) {
+        this.prefix = value
     }
 }
