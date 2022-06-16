@@ -36,6 +36,13 @@ class PropertyUtils {
     }
 
     /**
+     * @return The components of a property path
+     */
+    static String[] getPathComponents(String path) {
+        path.split(/\./)
+    }
+
+    /**
      * Returns the setter method string for the given property name.
      * <p>
      * If the property name is fully qualified it will split at `.`

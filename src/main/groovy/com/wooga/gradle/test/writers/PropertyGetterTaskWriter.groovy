@@ -107,5 +107,13 @@ class PropertyGetterTaskWriter extends BasePropertyQueryTaskWriter {
             GradleSpecUtils.taskLog(taskName, stdout)
         })
     }
+
+    /**
+     * @return The evaluation to be used for checking the value of the property
+     */
+    PropertyGetterTaskWriter with(PropertyEvaluation evaluation) {
+        this.evaluation = evaluation
+        this
+    }
 }
 
