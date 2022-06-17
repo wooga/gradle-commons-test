@@ -1,7 +1,6 @@
 package com.wooga.gradle.test
 
 import com.wooga.gradle.ArgumentsSpec
-import com.wooga.gradle.BaseSpec
 import com.wooga.gradle.test.mock.MockTask
 import com.wooga.gradle.test.mock.MockTaskIntegrationSpec
 import org.gradle.api.Action
@@ -48,7 +47,7 @@ class BatchmodeWrapperUsingTask extends MockTask implements ArgumentsSpec {
             }
         })
 
-        execResult.assertNormalExitValue()
+        logger.info("exit value was ${execResult.exitValue}")
     }
 }
 
@@ -103,5 +102,26 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
         fileName | text
         "foobar" | "how now brown cow"
         "foobar" | ""
+    }
+
+    @Unroll
+    def "generates batch wrapper with custom exit value #value"() {
+        given:
+        def wrapper = new BatchmodeWrapper(fileName).withExitValue(value).toTempFile()
+
+        and:
+        appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
+
+        when:
+        def result = runTasksSuccessfully(subjectUnderTestName)
+
+        then:
+        result.standardOutput.contains("exit value was ${value}")
+
+        where:
+        fileName | value
+        "foobar" | 1
+        "foobar" | 0
+        "foobar" | 2
     }
 }
