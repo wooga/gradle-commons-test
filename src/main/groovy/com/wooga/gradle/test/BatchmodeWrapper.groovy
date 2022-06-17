@@ -9,6 +9,7 @@ class BatchmodeWrapper {
     final String fileName
     Boolean printEnvironment = true
     String text
+    Integer exitValue = 0
 
     BatchmodeWrapper(String fileName) {
         this.fileName = fileName
@@ -34,6 +35,11 @@ class BatchmodeWrapper {
 
     BatchmodeWrapper withText(String text) {
         this.text = text
+        this
+    }
+
+    BatchmodeWrapper withExitValue(Integer value) {
+        this.exitValue = value
         this
     }
 
@@ -84,6 +90,11 @@ class BatchmodeWrapper {
 
         // Custom write
         onWrite(wrapper)
+
+        // Exit code
+        wrapper << """
+        exit ${exitValue}
+        """.stripIndent()
 
         wrapper
     }
