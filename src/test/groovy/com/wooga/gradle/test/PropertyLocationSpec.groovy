@@ -60,12 +60,12 @@ class PropertyLocationSpec extends Specification {
         expected == actual
 
         where:
-        name          | expected
-        "none"        | PropertyLocation.none
-        "script"      | PropertyLocation.script
-        "property"    | PropertyLocation.property
-        "environment" | PropertyLocation.environment
-        "commandLine" | PropertyLocation.commandLine
+        name                  | expected
+        "none"                | PropertyLocation.none
+        "script"              | PropertyLocation.script
+        "property"            | PropertyLocation.property
+        "environment"         | PropertyLocation.environment
+        "commandLine"         | PropertyLocation.commandLine
     }
 
 }

@@ -37,6 +37,7 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
         "pancakeFlavor" | "mint"                                                                             | String                  | PropertySetInvocation.providerSet | PropertyLocation.script
         "pancakeFlavor" | "chocolate"                                                                        | String                  | PropertySetInvocation.providerSet | PropertyLocation.environment
         "pancakeFlavor" | "cow"                                                                              | String                  | PropertySetInvocation.providerSet | PropertyLocation.property
+        "pancakeFlavor" | "burger"                                                                           | String                  | PropertySetInvocation.providerSet | PropertyLocation.propertyCommandLine
         "pancakeFlavor" | null                                                                               | String                  | PropertySetInvocation.none        | PropertyLocation.none
         "pancakeFlavor" | null                                                                               | _                       | PropertySetInvocation.none        | PropertyLocation.none
         "pancakeFlavor" | null                                                                               | _                       | _                                 | PropertyLocation.none
@@ -44,11 +45,12 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
         "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.script
         "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.environment
         "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.property
+        "bake"          | true                                                                               | Boolean                 | PropertySetInvocation.assignment  | PropertyLocation.propertyCommandLine
         "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.script
         "tags"          | TestValue.set(["foo", "bar"])                                                      | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.script
         "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.environment
         "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.property
-        "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.property
+        "tags"          | ["foo", "bar"]                                                                     | "List<String>"          | PropertySetInvocation.providerSet | PropertyLocation.propertyCommandLine
         "numbers"       | TestValue.none().expect(PropertyTask.PropertyTaskConventions.numbers.defaultValue) | Integer                 | _                                 | _
 
         setter = new PropertySetterWriter(subjectUnderTestName, property)
