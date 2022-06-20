@@ -1,5 +1,6 @@
 package com.wooga.gradle.test
 
+import com.wooga.gradle.PlatformUtils
 import groovy.json.StringEscapeUtils
 
 import java.nio.file.Files
@@ -24,11 +25,12 @@ class SpecUtils {
         return Files.createTempFile("tmp", "").toFile()
     }
 
+    @Deprecated
+    /**
+     * @deprecated Please use PlatformUtils.escapedPath instead
+     */
     static String escapedPath(String path) {
-        if (isWindows()) {
-            return StringEscapeUtils.escapeJava(path)
-        }
-        return path
+        PlatformUtils.escapedPath(path)
     }
 
     static Throwable rootCause(Throwable e) {
@@ -38,17 +40,26 @@ class SpecUtils {
         return rootCause(e.cause)
     }
 
+    @Deprecated
+    /**
+     * @deprecated Please use the function declared in PlatformUtils instead
+     */
     static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("windows")
+        PlatformUtils.windows
     }
 
+    // TODO: Update the check on the PlatforUtils one
     static boolean isUnix() {
-        return System.getProperty("os.name").toLowerCase().contains("linux") ||
+        return PlatformUtils.linux ||
                 System.getProperty("os.name").toLowerCase().contains("unix")
     }
 
+    @Deprecated
+    /**
+     * @deprecated Please use the function declared in PlatformUtils instead
+     */
     static boolean isMacOS() {
-        return System.getProperty("os.name").toLowerCase().contains("mac")
+        PlatformUtils.mac
     }
 
 }
