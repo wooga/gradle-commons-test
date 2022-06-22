@@ -93,7 +93,7 @@ class PropertyUtils {
                 // TODO:
             case "Callable":
                 def returnType = subType ?: rawValue.class.typeName
-                value = "new java.util.concurrent.Callable<${returnType}>() {@Override ${returnType} call() throws Exception {${wrapValueBasedOnType(rawValue, returnType, fallback)}}"
+                value = "new java.util.concurrent.Callable<${returnType}>() {@Override ${returnType} call() throws Exception {${wrapValueBasedOnType(rawValue, returnType, fallback)}}}"
                 break
             case "Object":
                 value = "new Object() {@Override String toString() { ${wrapValueBasedOnType(rawValue, "String", fallback)} }}"
