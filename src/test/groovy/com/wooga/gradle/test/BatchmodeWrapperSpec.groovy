@@ -124,4 +124,42 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
         "foobar" | 0
         "foobar" | 2
     }
+
+    @Unroll
+    def "can evaluate whether batch wrapper printed arguments #args, environment #env"() {
+        given:
+        def wrapper = new BatchmodeWrapper(fileName)
+            .withEnvironment(printEnv)
+            .toTempFile()
+
+        and:
+        appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
+        if (args != null) {
+            appendToSubjectTask("arguments(${wrapValueBasedOnType(args, List)})")
+        }
+        if (env != null) {
+            for (kvp in env) {
+                environmentVariables.set(kvp.key, kvp.value)
+            }
+        }
+
+        when:
+        def result = runTasksSuccessfully(subjectUnderTestName)
+
+        then:
+        BatchmodeWrapper.containsArguments(result.standardOutput, args)
+        printEnv ? BatchmodeWrapper.containsEnvironment(result.standardOutput, env) : true
+
+        where:
+        args                        | printEnv | env
+        ["foo", "bar"]              | false    | null
+        ["foobar"]                  | false    | null
+        ["--pancakes", "--waffles"] | false    | null
+        null                        | true     | ["foo": "bar"]
+        null                        | true     | ["foo": "bar", "pancakes": "waffles"]
+        null                        | false    | ["foo": "bar"]
+        ["cat", "dog"]              | true     | ["foo": "bar"]
+        null                        | false    | ["foo": "bar"]
+        fileName = "foobar"
+    }
 }
