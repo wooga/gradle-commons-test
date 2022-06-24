@@ -75,6 +75,7 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
         property  | value                                                                        | type | method                            | location
         "logsDir" | TestValue.set("build/custom/logs").expectAsProjectFile()                     | File | PropertySetInvocation.providerSet | PropertyLocation.script
         "logsDir" | TestValue.projectFile("build/custom/logs").describe("by convenience method") | File | PropertySetInvocation.providerSet | PropertyLocation.script
+        "logsDir" | TestValue.projectBuildFile("custom/logs").describe("by convenience method")  | File | PropertySetInvocation.providerSet | PropertyLocation.script
         // Setting it from the properties sets it to build/
         "logsDir" | TestValue.set("custom/logs").expectProjectFile("build/custom/logs")          | File | _                                 | PropertyLocation.property
         // Setting it from the environment sets it to build/

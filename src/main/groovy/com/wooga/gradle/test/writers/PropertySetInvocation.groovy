@@ -180,7 +180,7 @@ class CustomSetterPropertySetInvocation extends PropertySetInvocation {
 
     @Override
     String getDefinition() {
-        "custom property setter"
+        "custom property setter '${setterName}'"
     }
 
     String setterName
