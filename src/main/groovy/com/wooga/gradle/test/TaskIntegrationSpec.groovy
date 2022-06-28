@@ -15,7 +15,9 @@ trait TaskIntegrationSpec<T extends DefaultTask> {
 
     abstract File getBuildFile()
 
-    abstract void addTask(String name, String typeName, Boolean force, String... lines)
+    abstract String addTask(String name, String typeName, Boolean force, String... lines)
+
+    abstract void appendToTask(String taskName, String... lines)
 
     Class<T> getSubjectUnderTestClass() {
         if (!_sutClass) {
@@ -40,11 +42,7 @@ trait TaskIntegrationSpec<T extends DefaultTask> {
     }
 
     void appendToSubjectTask(String... lines) {
-        buildFile << """
-        $subjectUnderTestName {
-            ${lines.join('\n')}
-        }
-        """.stripIndent()
+        appendToTask(subjectUnderTestName, lines)
     }
 
     /**
