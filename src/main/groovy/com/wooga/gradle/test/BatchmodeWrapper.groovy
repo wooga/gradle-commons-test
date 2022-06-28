@@ -1,6 +1,7 @@
 package com.wooga.gradle.test
 
 import com.wooga.gradle.PlatformUtils
+import org.spockframework.lang.Wildcard
 
 import java.nio.file.Files
 
@@ -28,7 +29,7 @@ class BatchmodeWrapper {
         wrapper
     }
 
-    BatchmodeWrapper withEnvironment(Boolean printEnvironment) {
+    BatchmodeWrapper withEnvironment(Boolean printEnvironment = true) {
         this.printEnvironment = printEnvironment
         this
     }
@@ -104,5 +105,51 @@ class BatchmodeWrapper {
      * @param file The file that has been generated and written to
      */
     void onWrite(File file) {
+    }
+
+    /**
+     * @param standardOutput The standard output a wrapper generated when executed
+     * @return True if the text (emitted by this wrapper previously) contains the given arguments
+     */
+    static Boolean containsArguments(String standardOutput, List<String> values, String separator = " ") {
+        StringBuilder builder = new StringBuilder()
+        builder.append("[ARGUMENTS]:${System.lineSeparator()}")
+
+        if (values != null) {
+            builder.append(values.join(separator))
+        }
+
+        String expected = builder.toString()
+        standardOutput.contains(expected)
+    }
+
+    /**
+     * @param standardOutput The standard output a wrapper generated when executed
+     * @return True if the text (emitted by this wrapper previously) contains the given environment variables
+     */
+    static Boolean containsEnvironment(String standardOutput, Map<String, ?> env) {
+
+        // Skip if not given
+        if (env == null || env.size() == 0) {
+            true
+        }
+
+        // Only check the substring start from the environment
+        String environmentDeclaration = "[ENVIRONMENT]:${System.lineSeparator()}"
+        def environmentStartIndex = standardOutput.indexOf(environmentDeclaration)
+        if (environmentStartIndex < 0) {
+            return false
+        }
+        String environmentText = standardOutput.substring(environmentStartIndex)
+
+        // Compose the environment that was printed
+        for (kvp in env) {
+            def printedKvp = "${kvp.key}=${kvp.value}"
+            if (!environmentText.contains(printedKvp)){
+                return false
+            }
+        }
+
+        true
     }
 }
