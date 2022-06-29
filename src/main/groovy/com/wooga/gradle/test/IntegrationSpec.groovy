@@ -17,7 +17,7 @@
 
 package com.wooga.gradle.test
 
-
+import com.wooga.gradle.PropertyLookup
 import com.wooga.gradle.test.queries.PropertyQuery
 import com.wooga.gradle.test.writers.BasePropertyWriter
 import com.wooga.gradle.test.writers.PropertyGetterTaskWriter
@@ -25,6 +25,7 @@ import nebula.test.functional.ExecutionResult
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.contrib.java.lang.system.ProvideSystemProperty
+import spock.lang.Shared
 
 import static com.wooga.gradle.PlatformUtils.windows
 
@@ -36,8 +37,15 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables()
 
+    @Shared
+    List<String> declaredEnvironmentVariables = new ArrayList<String>()
+
+    // Called before every feature method
     def setup() {
         environmentVariables.clear()
+        declaredEnvironmentVariables.each {
+            environmentVariables.set(it, null)
+        }
     }
 
     static String osPath(String path) {
@@ -130,9 +138,16 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
     PropertyQuery runPropertyQuery(String taskName, PropertyGetterTaskWriter queryTaskWriter, BasePropertyWriter... additional) {
         runPropertyQuery(taskName, queryTaskWriter, additional.toList())
     }
+
+    /**
+     * Clears the environment variables declared by the given class.
+     * @param type A convention class
+     * @return
+     */
+    def clearEnvironmentVariables(Class type) {
+        def values = PropertyLookup.getEnvironmentVariables(type)
+        if (!values.empty) {
+            declaredEnvironmentVariables.addAll(values)
+        }
+    }
 }
-
-
-
-
-
