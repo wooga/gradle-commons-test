@@ -20,8 +20,10 @@ package com.wooga.gradle.test
 
 import com.wooga.gradle.test.queries.PropertyQuery
 import com.wooga.gradle.test.writers.BasePropertyWriter
+import com.wooga.gradle.test.writers.CustomTaskWriter
 import com.wooga.gradle.test.writers.PropertyGetterTaskWriter
 import nebula.test.functional.ExecutionResult
+import org.gradle.api.Action
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.contrib.java.lang.system.ProvideSystemProperty
@@ -47,12 +49,19 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         new File(path).path
     }
 
+    /**
+     * @param path The path to be composed
+     * @return True if the file exists
+     */
     Boolean fileExists(String... path) {
-        fileExists(path.join("/"))
+        fileExists(path.join(File.separator))
     }
 
-    Boolean outputContains(ExecutionResult result, String message) {
-        result.standardOutput.contains(message) || result.standardError.contains(message)
+    /**
+     * @return True if the standard output or standard error contains the given text
+     */
+    Boolean outputContains(ExecutionResult result, String text) {
+        result.standardOutput.contains(text) || result.standardError.contains(text)
     }
 
     String wrapValueBasedOnType(Object rawValue, Class type, Closure<String> fallback = null) {
@@ -68,16 +77,66 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         wrapper.printEnvironment = printEnvironment
         wrapper.toTempFile()
     }
+    /**
+     * @return The name of the variable holding a reference to the task that was written
+     */
+    String addTask(String name, Class type, Boolean force, String... lines) {
+        addTask(name, type.name, force, lines)
+    }
 
-    void addTask(String name, String typeName, Boolean force, String... lines) {
-        lines = lines ?: []
+    /**
+     * @return The name of the variable holding a reference to the task that was written
+     */
+    String addTask(String name, String typeName, Boolean force, String... lines) {
+        new CustomTaskWriter(name, typeName)
+            .force(force)
+            .withLines(lines)
+            .write(buildFile)
+    }
+
+    /**
+     * Set a task dependency where A depends on B
+     */
+    void setTaskDependency(String a, String b) {
+        buildFile << """ ${a} { dependsOn ${b} }""".stripIndent()
+    }
+
+    /**
+     * Appends the lines to the given task
+     */
+    void appendToTask(String taskName, String... lines) {
         buildFile << """
-        task (${name}, type: ${typeName}) {                       
-            ${force ? "onlyIf = {true}\n" : ""}${lines.join('\n')}
+        $taskName {
+            ${lines.join(System.lineSeparator())}
         }
         """.stripIndent()
     }
 
+    /**
+     * @param configure A closure to configure the writer
+     * @return The name of the variable holding a reference to the task that was written
+     */
+    String writeTask(String name, String typeName, Action<CustomTaskWriter> configure = null) {
+        def writer = new CustomTaskWriter(name, typeName)
+        if (configure != null) {
+            configure.execute(writer)
+        }
+        writer.write(buildFile)
+    }
+
+    /**
+     * @param configure A closure to configure the writer
+     * @return The name of the variable holding a reference to the task that was written
+     */
+    String writeTask(String name, Class type, Action<CustomTaskWriter> configure = null) {
+        writeTask(name, type.name, configure)
+    }
+
+    /**
+     * @param writers A set of writers
+     * @param getterWriter A writer that generates a getter
+     * @return The names of the tasks that were written to the build script
+     */
     List<String> writeTasks(List<BasePropertyWriter> writers, PropertyGetterTaskWriter getterWriter = null) {
 
         List<String> taskNames = new ArrayList<String>()
@@ -131,7 +190,6 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         runPropertyQuery(taskName, queryTaskWriter, additional.toList())
     }
 }
-
 
 
 
