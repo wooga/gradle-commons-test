@@ -13,12 +13,11 @@ class PropertyQuery {
     //--------------------------------------------------------------------------------------------/
     // Fields
     //--------------------------------------------------------------------------------------------/
-    final ExecutionResult result
     final Boolean success
     final String pattern
     final IntegrationHandler integration
     final PropertyEvaluation evaluation
-    private final String standardOutput
+    final String standardOutput
 
     String typeName
     Boolean enableAssertions = true
@@ -31,7 +30,6 @@ class PropertyQuery {
                   String standardOutput,
                   PropertyEvaluation evaluation,
                   Boolean success = true) {
-        this.result = result
         this.standardOutput = standardOutput
         this.pattern = pattern
         this.integration = integration
