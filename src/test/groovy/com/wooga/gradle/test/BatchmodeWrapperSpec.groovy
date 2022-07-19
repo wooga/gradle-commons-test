@@ -129,8 +129,12 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
     def "can evaluate whether batch wrapper printed arguments #args, environment #env"() {
         given:
         def wrapper = new BatchmodeWrapper(fileName)
-            .withEnvironment(printEnv)
-            .toTempFile()
+                .withEnvironment(printEnv)
+                .toTempFile()
+
+        and: "additional arguments and environment variables before"
+        environmentVariables.set("TestKey", "TestValue")
+        appendToSubjectTask("""arguments(["--test-value1", "true"])""")
 
         and:
         appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
@@ -143,12 +147,26 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
             }
         }
 
+        and: "additional arguments and environment variables after"
+        environmentVariables.set("TestKey", "TestValue")
+        appendToSubjectTask("""arguments(["--test-value2","true"])""")
+
         when:
         def result = runTasksSuccessfully(subjectUnderTestName)
 
         then:
+        //check for the base values so we are sure all arguments are in the output:
+        BatchmodeWrapper.containsArguments(result.standardOutput, "--test-value1 true", "--test-value2 true")
+        printEnv ? BatchmodeWrapper.containsEnvironment(result.standardOutput, ["TestKey": "TestValue"]) : true
+
+        //check for the actual arguments we are interested in no specific order:
         BatchmodeWrapper.containsArguments(result.standardOutput, args)
         printEnv ? BatchmodeWrapper.containsEnvironment(result.standardOutput, env) : true
+
+        if(args) {
+            assert !BatchmodeWrapper.containsAllArguments(result.standardOutput, args)
+            assert BatchmodeWrapper.containsAllArguments(result.standardOutput, ["--test-value1", "true"] + args + ["--test-value2", "true"])
+        }
 
         where:
         args                        | printEnv | env
