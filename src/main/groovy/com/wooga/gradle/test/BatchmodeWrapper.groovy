@@ -1,11 +1,15 @@
 package com.wooga.gradle.test
 
 import com.wooga.gradle.PlatformUtils
-import org.spockframework.lang.Wildcard
 
 import java.nio.file.Files
 
 class BatchmodeWrapper {
+
+    final static String ARGUMENTS_START_MARKER = "[ARGUMENTS]:"
+    final static String ARGUMENTS_END_MARKER = "[ARGUMENTS END]"
+    final static String ENVIRONMENT_START_MARKER = "[ENVIRONMENT]:"
+    final static String ENVIRONMENT_END_MARKER = "[ENVIRONMENT END]"
 
     final String fileName
     Boolean printEnvironment = true
@@ -55,28 +59,32 @@ class BatchmodeWrapper {
 
             wrapper << """
                     @echo off
-                    echo [ARGUMENTS]:
+                    echo ${ARGUMENTS_START_MARKER}
                     echo %*
+                    echo ${ARGUMENTS_END_MARKER}
                 """.stripIndent()
 
             if (printEnvironment) {
                 wrapper << """
-                    echo [ENVIRONMENT]:
+                    echo ${ENVIRONMENT_START_MARKER}
                     set
+                    echo ${ENVIRONMENT_END_MARKER}
                 """.stripIndent()
             }
 
         } else {
             wrapper << """
                     #!/usr/bin/env bash
-                    echo [ARGUMENTS]:
+                    echo ${ARGUMENTS_START_MARKER}
                     echo \$@
+                    echo ${ARGUMENTS_END_MARKER}
                 """.stripIndent()
 
             if (printEnvironment) {
                 wrapper << """
-                    echo [ENVIRONMENT]:
+                    echo ${ENVIRONMENT_START_MARKER}
                     env
+                    echo ${ENVIRONMENT_END_MARKER}
                 """.stripIndent()
             }
         }
@@ -109,11 +117,11 @@ class BatchmodeWrapper {
 
     /**
      * @param standardOutput The standard output a wrapper generated when executed
-     * @return True if the text (emitted by this wrapper previously) contains the given arguments
+     * @return True if the text (emitted by this wrapper previously) contains the all given arguments in correct order.
      */
-    static Boolean containsArguments(String standardOutput, List<String> values, String separator = " ") {
+    static Boolean containsAllArguments(String standardOutput, Iterable<String> values, String separator = " ") {
         StringBuilder builder = new StringBuilder()
-        builder.append("[ARGUMENTS]:${System.lineSeparator()}")
+        builder.append("${ARGUMENTS_START_MARKER}${System.lineSeparator()}")
 
         if (values != null) {
             builder.append(values.join(separator))
@@ -123,29 +131,71 @@ class BatchmodeWrapper {
         standardOutput.contains(expected)
     }
 
+    private static String findSection(String value, String startMarker, String endMarker = null) {
+        def startIndex = value.indexOf(startMarker)
+        if (startIndex < 0) {
+            return null
+        }
+
+        def endIndex = (endMarker) ? value.indexOf(endMarker, startIndex) : Integer.MAX_VALUE
+        if (endIndex < 0) {
+            return null
+        }
+        value.substring(startIndex, endIndex)
+    }
+
+    /**
+     * @param standardOutput The standard output a wrapper generated when executed
+     * @param value A {@code String} value to check
+     * @return True if the text (emitted by this wrapper previously) contains the argument string.
+     */
+    static Boolean containsArguments(String standardOutput, String... values) {
+        containsArguments(standardOutput, values.toList())
+    }
+
+    /**
+     * @param standardOutput The standard output a wrapper generated when executed
+     * @param values A {@code Iterable<String>} value to check
+     * @return True if the text (emitted by this wrapper previously) contains the argument strings in any order.
+     */
+    static Boolean containsArguments(String standardOutput, Iterable<String> values) {
+        // Skip if not given
+        if (values == null || values.size() == 0) {
+            true
+        }
+
+        String start = "${ARGUMENTS_START_MARKER}${System.lineSeparator()}"
+        String end = "${ARGUMENTS_END_MARKER}${System.lineSeparator()}"
+
+        String arguments = findSection(standardOutput, start, end)
+        if (!arguments) {
+            return false
+        }
+        values.every { arguments.contains(it) }
+    }
+
     /**
      * @param standardOutput The standard output a wrapper generated when executed
      * @return True if the text (emitted by this wrapper previously) contains the given environment variables
      */
     static Boolean containsEnvironment(String standardOutput, Map<String, ?> env) {
-
         // Skip if not given
         if (env == null || env.size() == 0) {
             true
         }
 
-        // Only check the substring start from the environment
-        String environmentDeclaration = "[ENVIRONMENT]:${System.lineSeparator()}"
-        def environmentStartIndex = standardOutput.indexOf(environmentDeclaration)
-        if (environmentStartIndex < 0) {
+        String start = "${ENVIRONMENT_START_MARKER}${System.lineSeparator()}"
+        String end = "${ENVIRONMENT_END_MARKER}${System.lineSeparator()}"
+
+        String environmentText = findSection(standardOutput, start, end)
+        if (!environmentText) {
             return false
         }
-        String environmentText = standardOutput.substring(environmentStartIndex)
 
         // Compose the environment that was printed
         for (kvp in env) {
             def printedKvp = "${kvp.key}=${kvp.value}"
-            if (!environmentText.contains(printedKvp)){
+            if (!environmentText.contains(printedKvp)) {
                 return false
             }
         }
