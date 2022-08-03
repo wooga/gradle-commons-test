@@ -4,6 +4,7 @@ import com.wooga.gradle.test.IntegrationHandler
 import com.wooga.gradle.test.writers.PropertyEvaluation
 import nebula.test.functional.ExecutionResult
 import org.apache.commons.io.FileUtils
+import org.gradle.api.file.Directory
 
 /**
  * Used for evaluating the value of a property that was fetched by a script invocation
@@ -178,22 +179,85 @@ class PropertyQuery {
     }
 
     /**
-     * Adds a matcher that will treat all Files as starting from the project root
+     * Adds a serializer that will treat all java.io.File objects being matched as starting from the project root
+     * @return this object
      */
     PropertyQuery withFilePathsRelativeToProject() {
+        withFilePathsRelativeTo("")
+    }
+
+    /**
+     *
+     * Adds a serializer that will treat all java.io.File objects being matched as starting from the project root + dir
+     * @param dir -
+     * @return this object
+     */
+    PropertyQuery withFilePathsRelativeTo(String dir) {
         withSerializer(File, {
-            def relativePath = (String) it
-            new File(integration.projectDir, relativePath).path
+            String relativePath -> pathFromProjectDir(dir, relativePath)
+        })
+    }
+
+
+    /**
+     * Adds a serializer that will treat all Directories being matched as starting from the project root
+     * @return this object
+     */
+    PropertyQuery withDirectoryPathsRelativeToProject() {
+        withDirectoryPathsRelativeTo("")
+    }
+
+    /**
+     *
+     * Adds a serializer that will treat all Directories being matched as starting from the project root + dir
+     * @param dir -
+     * @return this object
+     */
+    PropertyQuery withDirectoryPathsRelativeTo(String dir) {
+        withSerializer(Directory, {
+            String relativePath -> pathFromProjectDir(dir, relativePath)
         })
     }
 
     /**
-     * Adds a matcher that will treat all paths from regular file providers as starting from the project root + dir
+     * Adds a serializer that will treat all RegularFile providers being matched as starting from the project root
+     * @return this object
+     */
+    PropertyQuery withFileProvidersRelativeToProject() {
+        return withFileProvidersRelativeTo("")
+    }
+
+    /**
+     * Adds a serializer that will treat all paths from RegularFile providers being matched as starting from the project root + dir
+     * @param dir
+     * @return this object
      */
     PropertyQuery withFileProvidersRelativeTo(String dir) {
         withSerializer("Provider<RegularFile>", {
-            def relativePath = (String) it
-            FileUtils.getFile(integration.projectDir, dir, relativePath).path
+            String relativePath -> pathFromProjectDir(dir, relativePath)
         })
+    }
+
+    /**
+     * Adds a serializer that will treat all Directory providers being matched as starting from the project root
+     * @return this object
+     */
+    PropertyQuery withDirectoryProvidersRelativeToProject() {
+        return withDirectoryProvidersRelativeTo("")
+    }
+
+    /**
+     * Adds a serializer that will treat all paths from Directory providers being matched as starting from the project root + dir
+     * @param dir
+     * @return this object
+     */
+    PropertyQuery withDirectoryProvidersRelativeTo(String dir) {
+        withSerializer("Provider<Directory>", {
+            String relativePath -> pathFromProjectDir(dir, relativePath)
+        })
+    }
+
+    private String pathFromProjectDir(String dir, String relativePath) {
+        FileUtils.getFile(integration.projectDir, dir, relativePath).path
     }
 }

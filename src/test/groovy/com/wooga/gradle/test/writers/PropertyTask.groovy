@@ -48,6 +48,14 @@ class PropertyTask extends MockTask implements BaseSpec {
         logFile
     }
 
+    private final DirectoryProperty targetDir
+
+    @Optional
+    @InputFile
+    DirectoryProperty getTargetDir() {
+        targetDir
+    }
+
     private final ListProperty<String> tags
 
     ListProperty<String> getTags() {
@@ -168,6 +176,7 @@ class PropertyTask extends MockTask implements BaseSpec {
     PropertyTask() {
         bake = project.objects.property(Boolean)
         logFile = project.objects.fileProperty()
+        targetDir = project.objects.directoryProperty()
         tags = project.objects.listProperty(String)
         pancakeFlavor = project.objects.property(String)
         numbers = project.objects.property(Integer)

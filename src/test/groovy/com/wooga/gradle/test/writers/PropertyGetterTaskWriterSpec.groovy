@@ -3,6 +3,7 @@ package com.wooga.gradle.test.writers
 import com.wooga.gradle.test.PropertyQueryTaskWriter
 import com.wooga.gradle.test.WrappedValue
 import com.wooga.gradle.test.mock.MockTaskIntegrationSpec
+import org.gradle.api.file.Directory
 import spock.lang.Unroll
 
 class PropertyGetterTaskWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
@@ -212,9 +213,10 @@ class PropertyGetterTaskWriterSpec extends MockTaskIntegrationSpec<PropertyTask>
         when:
         def writer = new PropertyGetterTaskWriter("${subjectUnderTestName}.${property}")
         def query = runPropertyQuery(writer)
-            .withFilePathsRelativeToProject()
-            .withFileProvidersRelativeTo(projectSubDir)
-            .withoutAssertions()
+                .withFilePathsRelativeToProject()
+                .withFileProvidersRelativeTo(projectSubDir)
+                .withDirectoryPathsRelativeToProject()
+                .withoutAssertions()
 
         then:
         query.matches(value, type)
@@ -227,6 +229,32 @@ class PropertyGetterTaskWriterSpec extends MockTaskIntegrationSpec<PropertyTask>
         "bake"          | true                 | Boolean
 
         projectSubDir = "build"
+    }
+
+
+    @Unroll
+    def "property query can have preset #type serializers for root project dir"() {
+        given:
+        setSubjectTaskProvider(property, new WrappedValue(value, type))
+
+        when:
+        def writer = new PropertyGetterTaskWriter("${subjectUnderTestName}.${property}")
+        def query = runPropertyQuery(writer)
+                .withFilePathsRelativeToProject()
+                .withFileProvidersRelativeTo("build") //cant test the "relativeToProject() due to a bug in wrapValueBasedOnType()
+                .withDirectoryPathsRelativeToProject()
+                .withDirectoryProvidersRelativeTo("build") //cant test the "relativeToProject() due to a bug in wrapValueBasedOnType()
+                .withoutAssertions()
+
+        then:
+        query.matches(value, type)
+
+        where:
+        property    | value          | type
+        "logFile"   | "pancakes.txt" | File
+        "logFile"   | "pancakes.txt" | "Provider<RegularFile>"
+        "targetDir" | "pancakes"     | Directory
+        "targetDir" | "pancakes"     | "Provider<Directory>"
     }
 
     @Unroll
@@ -265,6 +293,6 @@ class PropertyGetterTaskWriterSpec extends MockTaskIntegrationSpec<PropertyTask>
 
         property = "pancakeFlavor"
         getter = new PropertyGetterTaskWriter("${subjectUnderTestName}.${property}")
-            .filterTaskOutput()
+                .filterTaskOutput()
     }
 }

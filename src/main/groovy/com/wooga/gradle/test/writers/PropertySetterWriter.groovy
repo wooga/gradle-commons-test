@@ -1,6 +1,5 @@
 package com.wooga.gradle.test.writers
 
-import com.oracle.webservices.internal.api.message.PropertySet
 import com.wooga.gradle.test.IntegrationHandler
 import com.wooga.gradle.test.IntegrationSpec
 import com.wooga.gradle.test.PropertyLocation
