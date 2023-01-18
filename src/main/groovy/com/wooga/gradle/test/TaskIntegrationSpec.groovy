@@ -34,7 +34,7 @@ trait TaskIntegrationSpec<T extends DefaultTask> {
     private Class<T> _sutClass
 
     String getSubjectUnderTestName() {
-        "${subjectUnderTestClass.simpleName.uncapitalize()}"
+        "${subjectUnderTestClass.simpleName.uncapitalize()}Test"
     }
 
     String getSubjectUnderTestTypeName() {
