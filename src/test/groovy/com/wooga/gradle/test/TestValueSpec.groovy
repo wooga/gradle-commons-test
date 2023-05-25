@@ -62,7 +62,7 @@ class TestValueSpec extends Specification {
         "pancakes"     | TestValue.list(input).expectPrepend("waffles")        | "[pancakes]"                                            | ["waffles", "pancakes"]
         _              | TestValue.none()                                      | "null"                                                  | null
         ["foo", "bar"] | TestValue.join(input)                                 | "foo,bar"                                               | input
-        7              | TestValue.set(input).expect({ Integer it -> it * 2 }) | "7"                                                     | 14
+        7              | TestValue.set(input).expect({ Integer i -> i * 2 })   | "7"                                                     | 14
         7              | TestValue.set(input).write({ "<${it}>" })             | "<7>"                                                   | 7
     }
 

@@ -5,7 +5,6 @@ import com.wooga.gradle.test.PropertyLocation
 import com.wooga.gradle.test.serializers.PropertyTypeSerializer
 import com.wooga.gradle.test.mock.MockTaskIntegrationSpec
 import com.wooga.gradle.test.queries.TestValue
-import groovyjarjarcommonscli.MissingArgumentException
 import spock.lang.Unroll
 
 class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
@@ -15,7 +14,7 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
         runPropertyQuery(getter, setter)
 
         then:
-        thrown(MissingArgumentException)
+        thrown(IllegalArgumentException)
 
         where:
         property = "pancakes"
@@ -127,8 +126,8 @@ class PropertySetterWriterSpec extends MockTaskIntegrationSpec<PropertyTask> {
 
         setter = new PropertySetterWriter(subjectUnderTestName, property)
             .set(value, type)
-            .preprocess({ map -> map.transform(String, { String value -> value.toUpperCase() }) })
-            .preprocess({ map -> map.transform(Integer, { Integer value -> value * 2 }) })
+            .preprocess({ map -> map.transform(String, { String s -> s.toUpperCase() }) })
+            .preprocess({ map -> map.transform(Integer, { Integer i -> i * 2 }) })
         getter = new PropertyGetterTaskWriter(setter)
     }
 

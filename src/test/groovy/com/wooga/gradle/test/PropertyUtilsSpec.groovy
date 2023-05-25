@@ -203,15 +203,15 @@ class PropertyUtilsSpec extends Specification {
 
     def "wrapValueBasedOnType can wrap custom types with fallback closure"() {
         given: "a fallback closure"
-        def fallback = { Object rawValue, String type, Closure<String> fallback ->
+        def fallback = { Object _rawValue, String _type, Closure<String> fallback ->
             def value
-            switch (type) {
+            switch (_type) {
                 case "CustomType":
-                    def m = rawValue as Map
+                    def m = _rawValue as Map
                     value = "'My custom type is a string with value ${m["value"]} and foo ${m["foo"]}'"
                     break
                 default:
-                    value = rawValue.toString()
+                    value = _rawValue.toString()
                     break
             }
             value

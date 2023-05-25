@@ -13,6 +13,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.options.Option
 
@@ -58,6 +59,7 @@ class PropertyTask extends MockTask implements BaseSpec {
 
     private final ListProperty<String> tags
 
+    @Internal
     ListProperty<String> getTags() {
         tags
     }
@@ -134,8 +136,9 @@ class PropertyTask extends MockTask implements BaseSpec {
         })
     }
 
-    private final DirectoryProperty logsDir = objects.directoryProperty()
 
+    private final DirectoryProperty logsDir = objects.directoryProperty()
+    @Internal
     DirectoryProperty getLogsDir() {
         logsDir
     }

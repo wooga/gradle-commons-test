@@ -1,20 +1,20 @@
 package com.wooga.gradle.test
 
-
 import java.util.regex.Pattern
+
 
 class GradleSpecUtils {
 
-    static final Pattern endTaskPattern = Pattern.compile("^.*task.*completed.\$")
+    final static Pattern taskStartLinePattern = Pattern.compile(/^(> Task )?(?<name>:[^ ]+) ?(?<status>[^ ]*)$/, Pattern.MULTILINE)
+
 
     static String[] executedTasks(String gradleStdOut) {
-        //example line: "> Task :sonarScannerInstall SKIPPED"
+        //example line: "> Task :sonarScannerInstall UP-TO-DATE" or ":skippedTask SKIPPED"
         def tasks = []
-        def taskBaseStart = "> Task "
         gradleStdOut.readLines().each {
-            if(it.stripIndent().startsWith(taskBaseStart)) {
-                def taskName = it.replace(taskBaseStart, "").split(" ")[0].trim()
-                tasks.add(taskName)
+            def taskData = nextTaskStartData(it)
+            if(taskData.isPresent()) {
+                tasks.add(taskData.get().name)
             }
         }
         return tasks
@@ -24,22 +24,38 @@ class GradleSpecUtils {
         if(!task.startsWith(":")) {
             task = ":" + task
         }
-        String taskString = "> Task ${task}"
-        int taskBeginIdx = stdOutput.indexOf(taskString) + taskString.length()
-        String taskTail = stdOutput.substring(taskBeginIdx)
-        int taskEndIdx = taskEndIndex(taskTail, task).orElseThrow {
-            new IllegalStateException("could not find task end match for task $task")
+        int taskBeginIdx = nextTaskStart(stdOutput, task).orElseThrow {
+            new IllegalStateException("could not find task log match for task $task")
         }
+        def taskTail = stdOutput.substring(taskBeginIdx).trim()
+        def noTaskDeclTail = taskTail.readLines().with {
+            it.pop()
+            return it.join("\n")
+        }
+        int taskEndIdx = nextTaskStart(noTaskDeclTail).orElse(taskTail.length())
 
         def logs = taskTail.substring(0, taskEndIdx)
-        return taskString + logs
+        return logs
     }
 
-    static Optional<Integer> taskEndIndex(String log, String taskName) {
-        taskName = taskName.replace(":", "")
-        def matcher = Pattern.compile(".*$taskName.*completed.+").matcher(log)
+    static Optional<Integer> nextTaskStart(String log, String task=null, boolean endIdx = false) {
+        return nextTaskStartData(log, task).map {endIdx? it.endIdx as int : it.startIdx as int }
+    }
+
+    private static Optional<Map> nextTaskStartData(String log, String task=null) {
+        def pattern = taskStartLinePattern
+        if(task) {
+            pattern = Pattern.compile(/^(> Task )?(?<name>${task}) ?(?<status>[^ ]*)$/, Pattern.MULTILINE)
+        }
+        def matcher = pattern.matcher(log)
+        def idx = -1
         if(matcher.find()) {
-            return Optional.of(matcher.end(0))
+            return Optional.of([
+                    name: matcher.group("name"),
+                    status: matcher.group("status"),
+                    startIdx: matcher.start(),
+                    endIdx: matcher.end()
+            ])
         }
         return Optional.empty()
     }
