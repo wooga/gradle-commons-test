@@ -2,7 +2,6 @@ package com.wooga.gradle.test
 
 import com.wooga.gradle.test.writers.PropertySetInvocation
 import com.wooga.gradle.test.writers.PropertyWrite
-import groovyjarjarcommonscli.MissingArgumentException
 import org.spockframework.lang.Wildcard
 
 import static com.wooga.gradle.test.PropertyUtils.envNameFromProperty
@@ -190,7 +189,7 @@ class CommandLineOptionPropertyLocation extends PropertyLocation {
     @Override
     PropertyWrite write(PropertySetArguments args) {
         if (!args.commandLineOption) {
-            throw new MissingArgumentException("No command line option was provided for '${args.path}'")
+            throw new IllegalArgumentException("No command line option was provided for '${args.path}'")
         }
 
         String option = ""

@@ -52,7 +52,7 @@ class PropertyLocationSpec extends Specification {
     }
 
     @Unroll
-    def "can call valueOf for #name expecting #value like an enum type"() {
+    def "can call valueOf for #name expecting #expected like an enum type"() {
         when:
         def actual = PropertyLocation.valueOf(name)
 

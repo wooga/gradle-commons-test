@@ -7,7 +7,6 @@ import com.wooga.gradle.test.PropertySetArguments
 import com.wooga.gradle.test.queries.TestValue
 import com.wooga.gradle.test.serializers.IntegrationObjectProcessor
 import com.wooga.gradle.test.serializers.PropertyTypeSerializer
-import groovyjarjarcommonscli.MissingArgumentException
 import nebula.test.Integration
 import org.gradle.api.Action
 import org.spockframework.lang.Wildcard
@@ -273,7 +272,7 @@ class PropertySetterWriter extends BasePropertyWriter {
     PropertyWrite write(IntegrationHandler integration) {
 
         if (value == null && location != PropertyLocation.none) {
-            throw new MissingArgumentException("No value was set. Please make sure to call the set(value, type) method")
+            throw new IllegalArgumentException("No value was set. Please make sure to call the set(value, type) method")
         }
 
         // Compose the arguments
@@ -304,7 +303,7 @@ class PropertySetterWriter extends BasePropertyWriter {
             if (fallbacks.containsKey(typeName)) {
                 def func = fallbacks[typeName]
                 if (func.serializer == null) {
-                    throw new MissingArgumentException("No serializer on the function was set for type ${typeName}")
+                    throw new IllegalArgumentException("No serializer on the function was set for type ${typeName}")
                 }
                 result = func.serializer.apply(value)
             }
