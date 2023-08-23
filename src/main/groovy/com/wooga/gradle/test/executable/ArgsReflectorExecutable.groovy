@@ -127,15 +127,16 @@ class ArgsReflectorExecutable {
      */
     Result[] allResults(String stdOutput) {
         def results = new ArrayList<Result>()
-        def log = stdOutput
-        def currentIndex = log.indexOf(fileTokens[0])
-        while (currentIndex > -1) {
-            def currentLog = log.substring(currentIndex)
+        def currentLog = stdOutput
+        while(true) {
+            def currentIndex = currentLog.indexOf(fileTokens[0])
+            if(currentIndex < 0) {
+                return results
+            }
             results.add(new Result(currentLog))
-            currentIndex = currentLog.substring(currentIndex + fileTokens[0].length()).
-                    indexOf(fileTokens[0])
+            currentLog = currentLog.substring(currentIndex + fileTokens[0].size(), currentLog.size())
+
         }
-        return results
     }
 
 
