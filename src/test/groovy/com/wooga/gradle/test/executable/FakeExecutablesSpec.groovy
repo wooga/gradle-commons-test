@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit
 
 class FakeExecutablesSpec extends Specification {
 
+
+
     @Requires({ os.windows })
     @Unroll
     def "creates executable which logs its own arguments and environment on windows"() {
@@ -53,11 +55,7 @@ class FakeExecutablesSpec extends Specification {
 
         when: "creating and executing args reflector executable"
         def executable = FakeExecutables.argsReflector(filePath, exitStatus)
-        String[] envs = environment.toArray(new String[0])
-        def process = Runtime.getRuntime().
-                exec("sh ${executable.executable.absolutePath} ${arguments.join(" ")}".toString(), envs)
-        def log = stringFromStream(process.inputStream)
-        process.waitFor(1000, TimeUnit.MILLISECONDS)
+        def (process, log) = runShScript(executable.executable, arguments, environment)
 
         then: "executable was executed"
         log.size() > 0
@@ -80,6 +78,44 @@ class FakeExecutablesSpec extends Specification {
         "scropt" | 1          | ["arg1=a", "arg2", "arg:3"] | []
         "scrupt" | 1          | ["arg", "arg2-b"]           | ["c=d"]
     }
+
+    @Requires({ !os.windows })
+    def "reads logs from multiple log executions of an executable"() {
+        when: "creating args reflector executable"
+        def executable = FakeExecutables.argsReflector(filePath, 0)
+        def multiExecutionLog = (0..processCount-1).collect {i ->
+            def (_, log) = runShScript(executable.executable, arguments[i], environment[i])
+            return log
+        }.join("\n")
+
+        then: "executable was executed"
+        multiExecutionLog.size() > 0
+        multiExecutionLog.count("[[end ${filePath}]]") == processCount
+        multiExecutionLog.count("[[${filePath}]]") == processCount
+        and: "used arguments and environments are recorded on result object"
+        def results = executable.allResults(multiExecutionLog)
+        results.size() == processCount
+        results.eachWithIndex {it, i ->
+            def expectedArgs = arguments[i]
+            def expectedEnv = environment[i].collectEntries {
+                return it.split("=")
+            }.entrySet()
+            assert it.args == expectedArgs
+            assert it.envs.entrySet().containsAll(expectedEnv)
+        }
+        where:
+        filePath = "script"
+        arguments = [
+                ["--a", "--b=c"],
+                ["--c", "--a=b"]
+        ]
+        environment = [
+                ['A=B', 'B=C'],
+                ['A=B', 'B=C', 'C=D'],
+        ]
+        processCount = arguments.size()
+    }
+
 
     @Requires({ os.windows })
     @Unroll
@@ -159,9 +195,18 @@ class FakeExecutablesSpec extends Specification {
         return output.toString()
     }
 
-    List<?> runWindowsBatScript(File script, List<String> arguments, String[] envs = null) {
+    Tuple2<Process, String> runWindowsBatScript(File script, List<String> arguments, String[] envs = null) {
         def process = Runtime.getRuntime().
                 exec("cmd.exe /c \"${script.absolutePath} ${arguments.join(" ")}\"".toString(), envs)
+        def log = stringFromStream(process.inputStream)
+        process.waitFor(1000, TimeUnit.MILLISECONDS)
+        return [process, log]
+    }
+
+    Tuple2<Process, String> runShScript(File executable, List<String> arguments, List<String> envVars) {
+        String[] envs = envVars.toArray(new String[0])
+        def process = Runtime.getRuntime().
+                exec("sh ${executable.absolutePath} ${arguments.join(" ")}".toString(), envs)
         def log = stringFromStream(process.inputStream)
         process.waitFor(1000, TimeUnit.MILLISECONDS)
         return [process, log]
