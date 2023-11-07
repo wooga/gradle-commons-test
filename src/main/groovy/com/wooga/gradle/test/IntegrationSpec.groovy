@@ -17,20 +17,24 @@
 
 package com.wooga.gradle.test
 
-
+import com.wooga.gradle.test.mock.MockExecutable
 import com.wooga.gradle.test.queries.PropertyQuery
 import com.wooga.gradle.test.writers.BasePropertyWriter
-import com.wooga.gradle.test.writers.CustomTaskWriter
+import com.wooga.gradle.test.writers.TaskScriptWriter
+import com.wooga.gradle.test.writers.ValueWrapper
 import com.wooga.gradle.test.writers.PropertyGetterTaskWriter
 import nebula.test.functional.ExecutionResult
-import org.gradle.api.Action
+import org.gradle.internal.impldep.org.apache.http.annotation.Obsolete
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.contrib.java.lang.system.ProvideSystemProperty
 
 import static com.wooga.gradle.PlatformUtils.windows
 
-class IntegrationSpec extends nebula.test.IntegrationSpec implements IntegrationHandler {
+class IntegrationSpec extends nebula.test.IntegrationSpec
+    implements IntegrationHandler,
+        TaskScriptWriter,
+        ValueWrapper {
 
     @Rule
     ProvideSystemProperty properties = new ProvideSystemProperty("ignoreDeprecations", "true")
@@ -42,6 +46,9 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         environmentVariables.clear()
     }
 
+    /**
+     * @return A path normalized for the current operating system
+     */
     static String osPath(String path) {
         if (isWindows()) {
             path = path.startsWith('/') ? "c:" + path : path
@@ -58,80 +65,48 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
     }
 
     /**
+     * @param fileName The name of the file
+     * @param printEnvironment Whether to print the environment during execution
+     * @return The file object
+     */
+    File createMockExecutable(String fileName, Boolean printEnvironment = false) {
+        MockExecutable executable = new MockExecutable(fileName)
+        executable.printEnvironment = printEnvironment
+        executable.toTempFile()
+    }
+
+    /**
+     * @deprecated Use the better named {@code createMockExecutable}
+     */
+    @Obsolete
+    File generateBatchWrapper(String fileName, Boolean printEnvironment = false)  {
+        createMockExecutable(fileName, printEnvironment)
+    }
+
+    /**
+     * @param fileName The name of the file
+     * @param printEnvironment Whether to print the environment during execution
+     * @return The file object
+     */
+    File createMockExecutable(String fileName, String directoryPath, Boolean printEnvironment = false) {
+        MockExecutable executable = new MockExecutable(fileName)
+        executable.printEnvironment = printEnvironment
+        executable.toDirectory(directoryPath)
+    }
+
+    /**
+     * @deprecated Use the better named {@code createMockExecutable}
+     */
+    @Obsolete
+    File generateBatchWrapper(String fileName, String directoryPath, Boolean printEnvironment = false)  {
+        createMockExecutable(fileName, directoryPath, printEnvironment)
+    }
+
+    /**
      * @return True if the standard output or standard error contains the given text
      */
     Boolean outputContains(ExecutionResult result, String text) {
         result.standardOutput.contains(text) || result.standardError.contains(text)
-    }
-
-    @Deprecated
-    String wrapValueBasedOnType(Object rawValue, Class type, Closure<String> fallback = null) {
-        wrapValueBasedOnType(rawValue, type.simpleName, fallback)
-    }
-
-    @Deprecated
-    String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
-        return PropertyUtils.wrapValueBasedOnType(rawValue, type, fallback)
-    }
-
-    static File generateBatchWrapper(String fileName, Boolean printEnvironment = false) {
-        BatchmodeWrapper wrapper = new BatchmodeWrapper(fileName)
-        wrapper.printEnvironment = printEnvironment
-        wrapper.toTempFile()
-    }
-    /**
-     * @return The name of the variable holding a reference to the task that was written
-     */
-    String addTask(String name, Class type, Boolean force, String... lines) {
-        addTask(name, type.name, force, lines)
-    }
-
-    /**
-     * @return The name of the variable holding a reference to the task that was written
-     */
-    String addTask(String name, String typeName, Boolean force, String... lines) {
-        new CustomTaskWriter(name, typeName)
-            .force(force)
-            .withLines(lines)
-            .write(buildFile)
-    }
-
-    /**
-     * Set a task dependency where A depends on B
-     */
-    void setTaskDependency(String a, String b) {
-        buildFile << """ ${a} { dependsOn ${b} }""".stripIndent()
-    }
-
-    /**
-     * Appends the lines to the given task
-     */
-    void appendToTask(String taskName, String... lines) {
-        buildFile << """
-        $taskName {
-            ${lines.join(System.lineSeparator())}
-        }
-        """.stripIndent()
-    }
-
-    /**
-     * @param configure A closure to configure the writer
-     * @return The name of the variable holding a reference to the task that was written
-     */
-    String writeTask(String name, String typeName, Action<CustomTaskWriter> configure = null) {
-        def writer = new CustomTaskWriter(name, typeName)
-        if (configure != null) {
-            configure.execute(writer)
-        }
-        writer.write(buildFile)
-    }
-
-    /**
-     * @param configure A closure to configure the writer
-     * @return The name of the variable holding a reference to the task that was written
-     */
-    String writeTask(String name, Class type, Action<CustomTaskWriter> configure = null) {
-        writeTask(name, type.name, configure)
     }
 
     /**
@@ -160,6 +135,11 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         taskNames
     }
 
+    /**
+     * Runs a primary task, as well any tasks generated by the given writers,
+     * throwing if not successful
+     * @return The result of the execution
+     */
     ExecutionResult runTasksSuccessfully(String taskName, List<BasePropertyWriter> writers) {
         List<String> tasksToRun = new ArrayList<String>()
         tasksToRun.add(taskName)
@@ -167,20 +147,40 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         runTasksSuccessfully(*tasksToRun)
     }
 
+    /**
+     * Runs a primary task, as well a task generated by the given writer,
+     * throwing if not successful
+     * @return The result of the execution
+     */
     ExecutionResult runTasksSuccessfully(String taskName, BasePropertyWriter writer) {
         runTasksSuccessfully(taskName, [writer])
     }
 
+    /**
+     * Runs a generated task that will query the value of a single property
+     * after a writer has modified the build file before execution
+     * @return The result of the query
+     */
     PropertyQuery runPropertyQuery(PropertyGetterTaskWriter queryTaskWriter, BasePropertyWriter... additional) {
         runPropertyQuery(queryTaskWriter, additional.toList())
     }
 
+    /**
+     * Runs a generated task that will query the value of a single property
+     * after a set of writers have modified the build file before execution
+     * @return The result of the query
+     */
     PropertyQuery runPropertyQuery(PropertyGetterTaskWriter queryTaskWriter, List<BasePropertyWriter> writers) {
         List<String> tasks = writeTasks(writers, queryTaskWriter)
         def exec = runTasksSuccessfully(*tasks)
         queryTaskWriter.generateQuery(this, exec)
     }
 
+    /**
+     * Runs a primary task and a generated task that will query the value of a single property
+     * after a set of writers have modified the build file before execution
+     * @return The result of the query
+     */
     PropertyQuery runPropertyQuery(String taskName, PropertyGetterTaskWriter queryTaskWriter, List<BasePropertyWriter> writers) {
         List<String> tasks = writeTasks(writers, queryTaskWriter)
         tasks.add(0, taskName)
@@ -188,6 +188,11 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         queryTaskWriter.generateQuery(this, exec)
     }
 
+    /**
+     * Runs a primary task and a generated task that will query the value of a single property
+     * after a writer has modified the build file before execution
+     * @return The result of the query
+     */
     PropertyQuery runPropertyQuery(String taskName, PropertyGetterTaskWriter queryTaskWriter, BasePropertyWriter... additional) {
         runPropertyQuery(taskName, queryTaskWriter, additional.toList())
     }

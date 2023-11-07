@@ -15,7 +15,7 @@ class PropertyTypeSerializer {
 
     static PropertyTypeSerializer constructor(Class type, Class paramType) {
         def serializer = {
-            v -> "new ${type.name}(${PropertyUtils.wrapValueBasedOnType(v, paramType.simpleName)})"
+            v -> "new ${type.name}(${PropertyUtils.wrapValue(v, paramType.simpleName)})"
         }
         new PropertyTypeSerializer(type.simpleName, serializer)
     }

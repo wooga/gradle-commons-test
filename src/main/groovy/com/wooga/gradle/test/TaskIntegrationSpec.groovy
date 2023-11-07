@@ -1,11 +1,10 @@
 package com.wooga.gradle.test
 
+
 import com.wooga.gradle.test.mock.MockTask
 import org.gradle.api.DefaultTask
 
 import java.lang.reflect.ParameterizedType
-
-import static com.wooga.gradle.test.PropertyUtils.wrapValueBasedOnType
 
 /**
  * Adds support for specifying the subject task of an integration test. (To be used when in a derived {@code IntegrationSpec})
@@ -57,11 +56,15 @@ trait TaskIntegrationSpec<T extends DefaultTask> {
         addTask(subjectUnderTestName, subjectUnderTestTypeName, force, lines)
     }
 
+    void addSubjectTask(String... lines) {
+        addSubjectTask(true, lines)
+    }
+
     void addSubjectTask() {
         addSubjectTask(true)
     }
 
     void setSubjectTaskProvider(String name, WrappedValue wrap) {
-        appendToSubjectTask("${name}.set(${wrapValueBasedOnType(wrap.value, wrap.typeName)})")
+        appendToSubjectTask("${name}.set(${PropertyUtils.wrapValue(wrap.value, wrap.typeName)})")
     }
 }

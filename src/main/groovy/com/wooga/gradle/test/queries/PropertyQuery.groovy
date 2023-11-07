@@ -2,7 +2,6 @@ package com.wooga.gradle.test.queries
 
 import com.wooga.gradle.test.IntegrationHandler
 import com.wooga.gradle.test.writers.PropertyEvaluation
-import nebula.test.functional.ExecutionResult
 import org.apache.commons.io.FileUtils
 import org.gradle.api.file.Directory
 

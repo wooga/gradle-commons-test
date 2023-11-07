@@ -1,5 +1,6 @@
 package com.wooga.gradle.test
 
+
 import com.wooga.gradle.test.writers.PropertySetInvocation
 import com.wooga.gradle.test.writers.PropertyWrite
 import org.spockframework.lang.Wildcard
@@ -101,7 +102,7 @@ class BuildScriptPropertyLocation extends PropertyLocation {
     @Override
     PropertyWrite write(PropertySetArguments args) {
         def value = args.value
-        def wrappedValue = PropertyUtils.wrapValueBasedOnType(value, args.typeName, args.wrapFallback)
+        def wrappedValue = PropertyUtils.wrapValue(value, args.typeName, args.wrapFallback)
         def scriptInvocation = "${args.setInvocation.compose(args.path, wrappedValue)}"
         args.integration.buildFile << scriptInvocation
         null
@@ -199,7 +200,7 @@ class CommandLineOptionPropertyLocation extends PropertyLocation {
         option += args.commandLineOption
 
         if (args.typeName != "Boolean" && args.value != Wildcard.INSTANCE) {
-            def cliValue = PropertyUtils.wrapValueBasedOnType(args.value, args.typeName, args.wrapFallback)
+            def cliValue = PropertyUtils.wrapValue(args.value, args.typeName, args.wrapFallback)
             option += "${assignmentOperator}${cliValue}"
         }
 
