@@ -1,5 +1,6 @@
 package com.wooga.gradle.test
 
+import com.wooga.gradle.test.wrapper.GradleScriptWrapper
 import org.gradle.api.Incubating
 
 import static com.wooga.gradle.PlatformUtils.escapedPath
@@ -62,22 +63,57 @@ class PropertyUtils {
 
     /**
      * Generates a build.gradle-aware code line where rawValue is represented as type.
+    * Please note that the base directory for ALL file wrappers is projectDirectory.
      * @param rawValue value to be represented
      * @param type type to convert rawValue to
      * @param fallback fallback closure for specific types not covered by this method.
      * @return build.gradle aware code string representing rawValue as type.
      */
+    static String asGradleScript(Object rawValue, Class type, Closure<String> fallback = null) {
+        def wrapper = GradleScriptWrapper
+                                                .withBuiltInSerializers()
+                                                .withFallback(fallback)
+        return wrapper.wrap(rawValue, type)
+    }
+
+    /**
+     * Generates a build.gradle-aware code line where rawValue is represented as type.
+     * Please note that the base directory for ALL file wrappers is projectDirectory.
+     * @param rawValue value to be represented
+     * @param type type to convert rawValue to
+     * @param fallback fallback closure for specific types not covered by this method.
+     * @return build.gradle aware code string representing rawValue as type.
+     */
+    static String asGradleScript(Object rawValue, String type, Closure<String> fallback = null) {
+        def wrapper = GradleScriptWrapper
+                                                    .withBuiltInSerializers()
+                                                    .withFallback(fallback)
+        return wrapper.wrap(rawValue, type)
+
+    }
+
+    /**
+     * Generates a build.gradle-aware code line where rawValue is represented as type.
+     * DEPRECATED: please use `gradleTypeWrapper` instead.
+     * @param rawValue value to be represented
+     * @param type type to convert rawValue to
+     * @param fallback fallback closure for specific types not covered by this method.
+     * @return build.gradle aware code string representing rawValue as type.
+     */
+    @Deprecated
     static String wrapValueBasedOnType(Object rawValue, Class type, Closure<String> fallback = null) {
         return wrapValueBasedOnType(rawValue, type.simpleName, fallback)
     }
 
     /**
      * Generates a build.gradle-aware code line where rawValue is represented as type.
+     * DEPRECATED: please use `gradleTypeWrapper` instead.
      * @param rawValue value to be represented
      * @param type type to convert rawValue to
      * @param fallback fallback closure for specific types not covered by this method.
      * @return build.gradle aware code string representing rawValue as type.
      */
+    @Deprecated
     static String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
         String value
 

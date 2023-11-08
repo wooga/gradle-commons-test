@@ -21,4 +21,5 @@ class StringTypeMatch {
         }
         result
     }
+
 }

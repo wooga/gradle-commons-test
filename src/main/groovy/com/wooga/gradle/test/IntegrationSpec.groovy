@@ -64,10 +64,12 @@ class IntegrationSpec extends nebula.test.IntegrationSpec implements Integration
         result.standardOutput.contains(text) || result.standardError.contains(text)
     }
 
+    @Deprecated
     String wrapValueBasedOnType(Object rawValue, Class type, Closure<String> fallback = null) {
         wrapValueBasedOnType(rawValue, type.simpleName, fallback)
     }
 
+    @Deprecated
     String wrapValueBasedOnType(Object rawValue, String type, Closure<String> fallback = null) {
         return PropertyUtils.wrapValueBasedOnType(rawValue, type, fallback)
     }
