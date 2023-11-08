@@ -55,9 +55,9 @@ class TestValueSpec extends Specification {
 
         where:
         input          | testValue                                             | raw                                                     | expected
-        ["/foo/bar"]   | TestValue.filePaths(input)                            | "[${wrapValueBasedOnType(osPath("/foo/bar"), String)}]" | [osPath("/foo/bar")]
-        "/foo/bar"     | TestValue.filePaths(input)                            | "[${wrapValueBasedOnType(osPath("/foo/bar"), String)}]" | [osPath("/foo/bar")]
-        "/foo/bar"     | TestValue.filePath(input, true)                       | "${wrapValueBasedOnType(osPath("/foo/bar"), String)}"   | osPath("/foo/bar")
+        ["/foo/bar"]   | TestValue.filePaths(input)                            | "[${wrapValue(osPath("/foo/bar"), String)}]" | [osPath("/foo/bar")]
+        "/foo/bar"     | TestValue.filePaths(input)                            | "[${wrapValue(osPath("/foo/bar"), String)}]" | [osPath("/foo/bar")]
+        "/foo/bar"     | TestValue.filePath(input, true)                       | "${wrapValue(osPath("/foo/bar"), String)}"   | osPath("/foo/bar")
         "/foo/bar"     | TestValue.filePath(input)                             | "${osPath("/foo/bar")}"                                 | osPath("/foo/bar")
         "pancakes"     | TestValue.list(input).expectPrepend("waffles")        | "[pancakes]"                                            | ["waffles", "pancakes"]
         _              | TestValue.none()                                      | "null"                                                  | null

@@ -1,5 +1,6 @@
 package com.wooga.gradle.test
 
+
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -134,7 +135,7 @@ class PropertyUtilsSpec extends Specification {
     @Unroll
     def "wrapValueBasedOnType wraps given value #rawValue of type #rawType to requested type #type"() {
         expect:
-        PropertyUtils.wrapValueBasedOnType(rawValue, type) == expected
+        PropertyUtils.wrapValue(rawValue, type) == expected
 
         where:
         rawValue                                                   | rawType         | type                                  | expected
@@ -218,7 +219,7 @@ class PropertyUtilsSpec extends Specification {
         }
 
         expect:
-        PropertyUtils.wrapValueBasedOnType(rawValue, type, fallback) == expected
+        PropertyUtils.wrapValue(rawValue, type, fallback) == expected
 
         where:
         rawValue                                 | rawType | type                               | expected

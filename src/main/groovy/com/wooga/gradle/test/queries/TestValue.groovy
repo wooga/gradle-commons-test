@@ -114,7 +114,7 @@ class TestValue {
     static TestValue filePath(String path, Boolean wrap = false) {
         set(IntegrationSpec.osPath(path))
             .write({ String s ->
-                wrap ? PropertyUtils.wrapValueBasedOnType(s, String) : s
+                wrap ? PropertyUtils.wrapValue(s, String) : s
             })
     }
 
@@ -122,7 +122,7 @@ class TestValue {
         def values = paths.collect({ IntegrationSpec.osPath(it) })
         set(values)
             .write({ List<String> p ->
-                p.collect({ it -> PropertyUtils.wrapValueBasedOnType(it, String) })
+                p.collect({ it -> PropertyUtils.wrapValue(it, String) })
             })
     }
 

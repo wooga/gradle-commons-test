@@ -1,6 +1,7 @@
 package com.wooga.gradle.test
 
 import com.wooga.gradle.ArgumentsSpec
+import com.wooga.gradle.test.mock.MockExecutable
 import com.wooga.gradle.test.mock.MockTask
 import com.wooga.gradle.test.mock.MockTaskIntegrationSpec
 import org.gradle.api.Action
@@ -13,7 +14,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import spock.lang.Unroll
 
-class BatchmodeWrapperUsingTask extends MockTask implements ArgumentsSpec {
+class MockExecutableUsingTask extends MockTask implements ArgumentsSpec {
 
     RegularFileProperty mockExecutable = objects.fileProperty()
 
@@ -51,21 +52,21 @@ class BatchmodeWrapperUsingTask extends MockTask implements ArgumentsSpec {
     }
 }
 
-class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsingTask> {
+class MockExecutableSpec extends MockTaskIntegrationSpec<MockExecutableUsingTask> {
 
     @Unroll
     def "generates default batch wrapper with printEnv = #printEnv, executes it expecting args `#expectedArgs` and env `#expectedEnv`"() {
 
         given:
-        def wrapper = generateBatchWrapper(fileName, printEnv)
+        def wrapper = createMockExecutable(fileName, printEnv)
         for (kvp in env) {
             environmentVariables.set(kvp.key, kvp.value)
         }
 
         and:
-        appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
+        appendToSubjectTask("mockExecutable.set(file(${wrapValue(wrapper.absolutePath, String)}))")
         if (args != _) {
-            appendToSubjectTask("arguments(${wrapValueBasedOnType(args, List)})")
+            appendToSubjectTask("arguments(${wrapValue(args, List)})")
         }
 
         when:
@@ -87,10 +88,10 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
     def "generates batch wrapper with custom text #text"() {
 
         given:
-        def wrapper = new BatchmodeWrapper(fileName).withText(text).toTempFile()
+        def wrapper = new MockExecutable(fileName).withText(text).toTempFile()
 
         and:
-        appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
+        appendToSubjectTask("mockExecutable.set(file(${wrapValue(wrapper.absolutePath, String)}))")
 
         when:
         def result = runTasksSuccessfully(subjectUnderTestName)
@@ -107,10 +108,10 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
     @Unroll
     def "generates batch wrapper with custom exit value #value"() {
         given:
-        def wrapper = new BatchmodeWrapper(fileName).withExitValue(value).toTempFile()
+        def wrapper = new MockExecutable(fileName).withExitValue(value).toTempFile()
 
         and:
-        appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
+        appendToSubjectTask("mockExecutable.set(file(${wrapValue(wrapper.absolutePath, String)}))")
 
         when:
         def result = runTasksSuccessfully(subjectUnderTestName)
@@ -128,7 +129,7 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
     @Unroll
     def "can evaluate whether batch wrapper printed arguments #args, environment #env"() {
         given:
-        def wrapper = new BatchmodeWrapper(fileName)
+        def wrapper = new MockExecutable(fileName)
                 .withEnvironment(printEnv)
                 .toTempFile()
 
@@ -137,9 +138,9 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
         appendToSubjectTask("""arguments(["--test-value1", "true"])""")
 
         and:
-        appendToSubjectTask("mockExecutable.set(file(${wrapValueBasedOnType(wrapper.absolutePath, String)}))")
+        appendToSubjectTask("mockExecutable.set(file(${wrapValue(wrapper.absolutePath, String)}))")
         if (args != null) {
-            appendToSubjectTask("arguments(${wrapValueBasedOnType(args, List)})")
+            appendToSubjectTask("arguments(${wrapValue(args, List)})")
         }
         if (env != null) {
             for (kvp in env) {
@@ -156,16 +157,16 @@ class BatchmodeWrapperSpec extends MockTaskIntegrationSpec<BatchmodeWrapperUsing
 
         then:
         //check for the base values so we are sure all arguments are in the output:
-        BatchmodeWrapper.containsArguments(result.standardOutput, "--test-value1 true", "--test-value2 true")
-        printEnv ? BatchmodeWrapper.containsEnvironment(result.standardOutput, ["TestKey": "TestValue"]) : true
+        MockExecutable.containsArguments(result.standardOutput, "--test-value1 true", "--test-value2 true")
+        printEnv ? MockExecutable.containsEnvironment(result.standardOutput, ["TestKey": "TestValue"]) : true
 
         //check for the actual arguments we are interested in no specific order:
-        BatchmodeWrapper.containsArguments(result.standardOutput, args)
-        printEnv ? BatchmodeWrapper.containsEnvironment(result.standardOutput, env) : true
+        MockExecutable.containsArguments(result.standardOutput, args)
+        printEnv ? MockExecutable.containsEnvironment(result.standardOutput, env) : true
 
         if(args) {
-            assert !BatchmodeWrapper.containsAllArguments(result.standardOutput, args)
-            assert BatchmodeWrapper.containsAllArguments(result.standardOutput, ["--test-value1", "true"] + args + ["--test-value2", "true"])
+            assert !MockExecutable.containsAllArguments(result.standardOutput, args)
+            assert MockExecutable.containsAllArguments(result.standardOutput, ["--test-value1", "true"] + args + ["--test-value2", "true"])
         }
 
         where:

@@ -79,15 +79,15 @@ class GradleScriptWrapperSpec extends Specification {
     @Unroll
     def "asGradleScript can wrap custom types with fallback closure"() {
         given: "a fallback closure"
-        def fallback = { Object rawValue, String type, Closure<String> fallback ->
+        def fallback = { Object v, String t, Closure<String> fallback ->
             def value
-            switch (type) {
+            switch (t) {
                 case "CustomType":
-                    def m = rawValue as Map
+                    def m = v as Map
                     value = "'My custom type is a string with value ${m["value"]} and foo ${m["foo"]}'"
                     break
                 default:
-                    value = rawValue.toString()
+                    value = v.toString()
                     break
             }
             value
